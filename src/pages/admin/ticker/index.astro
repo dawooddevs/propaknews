@@ -1,0 +1,36 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { getSetting } from '../../../lib/db';
+const ticker = getSetting('ticker', []);
+---
+<Admin title="Ticker Bar" active="ticker">
+  <div class="card">
+    <p class="meta">The black bar under the navbar — petrol, gold, currency etc. Leave empty to hide the bar.</p>
+    <table><thead><tr><th>Label</th><th>Value</th><th>Change</th><th>Direction</th><th></th></tr></thead>
+      <tbody id="rows"></tbody></table>
+    <button class="btn gray sm" id="add">+ Add row</button>
+    <hr /><button class="btn" id="save">Save ticker</button>
+  </div>
+  <script is:inline define:vars={{ ticker }}>
+    const rows = document.getElementById('rows');
+    function row(t = { label: '', value: '', change: '', dir: 'up' }) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><input type="text" value="${t.label}" data-f="label"></td>
+        <td><input type="text" value="${t.value}" data-f="value"></td>
+        <td><input type="text" value="${t.change}" data-f="change"></td>
+        <td><select data-f="dir"><option value="up" ${t.dir === 'up' ? 'selected' : ''}>▲ up (green)</option>
+          <option value="down" ${t.dir === 'down' ? 'selected' : ''}>▼ down (red)</option></select></td>
+        <td><button class="btn sm red" onclick="this.closest('tr').remove()">✕</button></td>`;
+      rows.appendChild(tr);
+    }
+    ticker.forEach(row);
+    document.getElementById('add').onclick = () => row();
+    document.getElementById('save').onclick = async () => {
+      const value = [...rows.children].map((tr) => {
+        const o = {}; tr.querySelectorAll('[data-f]').forEach((i) => o[i.dataset.f] = i.value); return o;
+      }).filter((o) => o.label);
+      await api('/api/admin/settings', { key: 'ticker', value });
+      toast('Ticker saved');
+    };
+  </script>
+</Admin>

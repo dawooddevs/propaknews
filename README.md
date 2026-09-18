@@ -1,16 +1,12 @@
 # propaknews.com
 
-Pakistan-focused news site. Astro SSR + Sanity CMS, served by Nginx on Ubuntu 24.04.
+Pakistan-focused news site with a built-in CMS. Astro 5 SSR + SQLite + Nginx.
 
-- Writers publish through the Sanity Studio admin panel; articles appear on the
-  site immediately (no rebuild needed).
-- `docs/DEPLOY.md` — server setup from scratch.
-- `docs/SANITY.md` — connecting the CMS.
-- `scripts/deploy.sh` — routine deploys on the VPS.
+- Public site: Reuters-style layout, hero + 2×2 featured grid, Latest News, ticker bar, article pages with sidebar. Full SEO: meta/OG/Twitter/JSON-LD, sitemap, RSS, robots.
+- Admin (`/admin`): posts & pages (drafts/trash, infinite scroll, search by title/ID), media library with automatic webp conversion, homepage drag-drop ordering, menu editor, ticker editor, GA/GSC/AdSense settings, cache clear.
+- `docs/DEPLOY.md` — server setup. `scripts/deploy.sh` — routine code deploys.
 
 ## Local dev
 
     npm install
-    npm run dev
-
-Without `SANITY_PROJECT_ID` set, the site shows placeholder content.
+    ADMIN_INITIAL_PASSWORD=devpass123 npm run dev

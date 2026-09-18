@@ -1,0 +1,22 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { db } from '../../lib/db';
+const c = (sql: string) => (db.prepare(sql).get() as any).c;
+const stats = {
+  published: c("SELECT COUNT(*) c FROM posts WHERE type='post' AND status='published'"),
+  draft: c("SELECT COUNT(*) c FROM posts WHERE type='post' AND status='draft'"),
+  pages: c("SELECT COUNT(*) c FROM posts WHERE type='page' AND status!='trash'"),
+  media: c('SELECT COUNT(*) c FROM media'),
+};
+---
+<Admin title="Dashboard" active="dashboard">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+    {Object.entries({ 'Published posts': stats.published, Drafts: stats.draft, Pages: stats.pages, 'Media files': stats.media })
+      .map(([k, v]) => <div class="card" style="text-align:center;"><div style="font-size:2rem;font-weight:700;color:var(--primary)">{v}</div>{k}</div>)}
+  </div>
+  <div class="card">
+    <a class="btn" href="/admin/posts/edit/">+ New Post</a>
+    <a class="btn gray" href="/admin/pages/edit/">+ New Page</a>
+    <button class="btn red" onclick="api('/api/admin/settings',{action:'clear-cache'}).then(()=>toast('Cache cleared'))">Clear Cache</button>
+  </div>
+</Admin>

@@ -1,0 +1,20 @@
+---
+import Base from '../../layouts/Base.astro';
+import { db } from '../../lib/db';
+const { cat } = Astro.params;
+const posts = db.prepare(
+  `SELECT * FROM posts WHERE type='post' AND status='published'
+   AND lower(replace(category, ' ', '-')) = ? ORDER BY published_at DESC LIMIT 40`,
+).all((cat || '').toLowerCase()) as any[];
+const name = posts[0]?.category || (cat || '').replace(/-/g, ' ');
+---
+<Base title={`${name} — ProPak News`}>
+  <h1 style="text-transform: capitalize;">{name}</h1>
+  {posts.length === 0 && <p>No articles in this category yet.</p>}
+  {posts.map((p) => (
+    <article style="border-bottom: 1px solid var(--rule); padding: 14px 0;">
+      <a href={`/news/${p.slug}/`} style="text-decoration: none;"><h3 style="margin: 0 0 4px;">{p.title}</h3></a>
+      <p class="meta" style="margin: 0;">{p.excerpt}</p>
+    </article>
+  ))}
+</Base>

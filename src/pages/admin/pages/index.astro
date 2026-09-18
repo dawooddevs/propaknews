@@ -1,0 +1,21 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+---
+<Admin title="Pages" active="pages">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div class="tabs" id="tabs">
+      <a href="#" data-tab="all" class="on">All</a>
+      <a href="#" data-tab="published">Published</a>
+      <a href="#" data-tab="draft">Draft</a>
+      <a href="#" data-tab="trash">Trash</a>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="q" placeholder="Search…" style="width:260px;" />
+      <a class="btn" href="/admin/pages/edit/">+ New Page</a>
+    </div>
+  </div>
+  <table><thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Status</th><th>Published</th><th></th></tr></thead>
+    <tbody id="rows"></tbody></table>
+  <p id="end" class="meta" style="text-align:center;color:#888;"></p>
+  <script is:inline data-type="page" src="/admin-list.js"></script>
+</Admin>

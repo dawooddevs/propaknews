@@ -1,9 +1,10 @@
 ---
-interface Props {
-  title: string;
-  description?: string;
-}
-const { title, description = 'Latest news from Pakistan and around the world.' } = Astro.props;
+import { getSetting } from '../lib/db';
+interface Props { title: string; description?: string; seoHead?: string; }
+const seo = getSetting('seo', {});
+const { title, description = seo.metaDescription || '', seoHead = '' } = Astro.props;
+const menu = getSetting('menu', []);
+const ticker = getSetting('ticker', []);
 ---
 <!doctype html>
 <html lang="en">
@@ -13,40 +14,82 @@ const { title, description = 'Latest news from Pakistan and around the world.' }
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
-    <style>
+    {seo.gscVerification && <meta name="google-site-verification" content={seo.gscVerification} />}
+    {seo.gaId && (
+      <script async src={`https://www.googletagmanager.com/gtag/js?id=${seo.gaId}`}></script>
+    )}
+    {seo.gaId && (
+      <script is:inline set:html={`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','${seo.gaId}');`}></script>
+    )}
+    {seo.adsenseClient && seo.adsenseAuto && (
+      <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${seo.adsenseClient}`} crossorigin="anonymous"></script>
+    )}
+    <Fragment set:html={seoHead} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Source+Sans+3:wght@400;600;700&display=swap" />
+    <link rel="alternate" type="application/rss+xml" title={seo.siteTitle} href="/rss.xml" />
+    <style is:global>
       :root {
-        --ink: #1a1a1a;
-        --paper: #ffffff;
-        --accent: #0a6e31;
-        --muted: #6b6b6b;
-        --rule: #e2e2e2;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root { --ink: #ececec; --paper: #121212; --accent: #4cc47e; --muted: #9a9a9a; --rule: #2c2c2c; }
+        --primary: #d64000; --secondary: #a00000;
+        --ink: #1a1a1a; --paper: #ffffff; --muted: #666; --rule: #e4e4e4;
+        --serif: 'Source Serif 4', Georgia, serif;
+        --sans: 'Source Sans 3', -apple-system, 'Segoe UI', Arial, sans-serif;
       }
       * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        color: var(--ink);
-        background: var(--paper);
-        font-family: Georgia, 'Times New Roman', serif;
-        line-height: 1.6;
-      }
-      header, main, footer { max-width: 860px; margin: 0 auto; padding: 0 16px; }
-      header { border-bottom: 3px solid var(--accent); padding-top: 20px; padding-bottom: 12px; }
-      header a { color: var(--ink); text-decoration: none; }
-      .masthead { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.5px; }
-      .masthead span { color: var(--accent); }
-      main { padding-top: 24px; padding-bottom: 48px; }
-      footer { border-top: 1px solid var(--rule); padding: 16px; color: var(--muted); font-size: 0.85rem; }
-      a { color: var(--accent); }
+      body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--serif); line-height: 1.6; }
+      a { color: inherit; }
+      .wrap { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+      /* Reuters-style nav */
+      .topnav { border-bottom: 1px solid var(--rule); font-family: var(--sans); }
+      .topnav .wrap { display: flex; align-items: center; gap: 28px; height: 64px; }
+      .brand { font-family: var(--sans); font-weight: 700; font-size: 1.5rem; text-decoration: none; letter-spacing: -0.4px; white-space: nowrap; }
+      .brand .dot { color: var(--primary); }
+      .brand em { font-style: normal; color: var(--secondary); }
+      nav.mainmenu { display: flex; gap: 22px; overflow-x: auto; }
+      nav.mainmenu a { text-decoration: none; font-weight: 600; font-size: 0.95rem; padding: 20px 0; border-bottom: 3px solid transparent; white-space: nowrap; }
+      nav.mainmenu a:hover { border-bottom-color: var(--primary); color: var(--primary); }
+      /* ticker */
+      .ticker { background: #101010; color: #fff; font-family: var(--sans); font-size: 0.85rem; overflow: hidden; }
+      .ticker .wrap { display: flex; gap: 28px; padding: 7px 16px; overflow-x: auto; scrollbar-width: none; }
+      .ticker b { font-weight: 600; color: #bbb; }
+      .ticker .up { color: #2ecc71; } .ticker .down { color: #ff5c5c; }
+      main.wrap { padding-top: 24px; padding-bottom: 56px; }
+      footer { border-top: 2px solid var(--primary); font-family: var(--sans); }
+      footer .wrap { padding: 20px 16px; color: var(--muted); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
+      footer a { text-decoration: none; margin-right: 14px; }
+      h1, h2, h3 { font-family: var(--serif); }
+      .kicker { font-family: var(--sans); text-transform: uppercase; letter-spacing: 1px; font-size: 0.72rem; color: var(--primary); font-weight: 700; }
+      .meta { font-family: var(--sans); color: var(--muted); font-size: 0.8rem; }
+      img { max-width: 100%; height: auto; }
+      @media (max-width: 720px) { .topnav .wrap { height: auto; flex-wrap: wrap; padding: 10px 16px; } nav.mainmenu a { padding: 10px 0; } }
     </style>
   </head>
   <body>
-    <header>
-      <a href="/" class="masthead">Pro<span>Pak</span> News</a>
-    </header>
-    <main><slot /></main>
-    <footer>© {new Date().getFullYear()} propaknews.com</footer>
+    <div class="topnav">
+      <div class="wrap">
+        <a class="brand" href="/">Pro<em>Pak</em><span class="dot">.</span>News</a>
+        <nav class="mainmenu">
+          {menu.map((m: any) => <a href={m.url}>{m.label}</a>)}
+        </nav>
+      </div>
+    </div>
+    {ticker.length > 0 && (
+      <div class="ticker"><div class="wrap">
+        {ticker.map((t: any) => (
+          <span><b>{t.label}</b> {t.value} <span class={t.dir === 'down' ? 'down' : 'up'}>{t.change}</span></span>
+        ))}
+      </div></div>
+    )}
+    <main class="wrap"><slot /></main>
+    <footer><div class="wrap">
+      <span>© {new Date().getFullYear()} propaknews.com</span>
+      <span>
+        <a href="/privacy-policy/">Privacy Policy</a>
+        <a href="/terms-of-service/">Terms</a>
+        <a href="/about-us/">About</a>
+        <a href="/contact-us/">Contact</a>
+      </span>
+    </div></footer>
   </body>
 </html>

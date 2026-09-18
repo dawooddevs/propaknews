@@ -1,18 +1,67 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getArticle } from '../../lib/cms';
+import { getPostBySlug, publishedPosts, getSetting } from '../../lib/db';
 
 const { slug } = Astro.params;
-const article = slug ? await getArticle(slug) : null;
-if (!article) return new Response(null, { status: 404, statusText: 'Not found' });
+const post = slug ? getPostBySlug(slug) : null;
+if (!post) return new Response(null, { status: 404, statusText: 'Not found' });
+const seoSite = getSetting('seo', {});
+const s = post.seo || {};
+const sidebar = publishedPosts(8, 0, [post.id]);
+const canonicalUrl = s.canonical || new URL(`/news/${post.slug}/`, Astro.site).href;
+const ogImage = s.ogImage || post.featured_image;
+const iso = (d: string) => new Date(d.replace(' ', 'T') + 'Z').toISOString();
+const seoHead = `
+${s.noindex ? '<meta name="robots" content="noindex,nofollow">' : ''}
+${(s.keywords?.length) ? `<meta name="keywords" content="${s.keywords.join(', ').replace(/"/g, '&quot;')}">` : ''}
+<meta property="og:type" content="article">
+<meta property="og:title" content="${(s.ogTitle || s.metaTitle || post.title).replace(/"/g, '&quot;')}">
+<meta property="og:description" content="${(s.ogDesc || s.metaDesc || post.excerpt).replace(/"/g, '&quot;')}">
+<meta property="og:url" content="${canonicalUrl}">
+${ogImage ? `<meta property="og:image" content="${new URL(ogImage, Astro.site).href}">` : ''}
+<meta property="og:site_name" content="${seoSite.siteTitle || 'ProPak News'}">
+<meta name="twitter:card" content="${s.twitterCard || 'summary_large_image'}">
+<meta name="twitter:title" content="${(s.ogTitle || post.title).replace(/"/g, '&quot;')}">
+<meta name="twitter:description" content="${(s.ogDesc || post.excerpt).replace(/"/g, '&quot;')}">
+${ogImage ? `<meta name="twitter:image" content="${new URL(ogImage, Astro.site).href}">` : ''}
+<script type="application/ld+json">${JSON.stringify({
+  '@context': 'https://schema.org', '@type': 'NewsArticle',
+  headline: post.title, description: post.excerpt,
+  image: ogImage ? [new URL(ogImage, Astro.site).href] : [],
+  datePublished: iso(post.published_at), dateModified: iso(post.updated_at),
+  articleSection: post.category, keywords: (s.keywords || []).join(', '),
+  mainEntityOfPage: canonicalUrl,
+  publisher: { '@type': 'Organization', name: seoSite.siteTitle || 'ProPak News' },
+})}</script>`;
+const fmt = (d: string) => new Date(d.replace(' ', 'T') + 'Z')
+  .toLocaleString('en-PK', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 ---
-<Base title={`${article.title} — ProPak News`} description={article.excerpt}>
-  <article>
-    <div style="color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
-      {article.category} · {new Date(article.publishedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
-    </div>
-    <h1 style="margin: 8px 0 16px; line-height: 1.25;">{article.title}</h1>
-    {article.imageUrl && <img src={article.imageUrl} alt="" style="width: 100%; height: auto; border-radius: 4px;" />}
-    <div set:html={article.body} />
-  </article>
+<Base title={s.metaTitle || `${post.title} — ${seoSite.siteTitle || 'ProPak News'}`}
+      description={s.metaDesc || post.excerpt} seoHead={seoHead}>
+  <style>
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 40px; }
+    article h1 { font-size: 2.3rem; line-height: 1.2; margin: 8px 0 10px; }
+    .body :global(p) { font-size: 1.08rem; }
+    .body :global(img) { border-radius: 4px; }
+    .featimg { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; margin: 14px 0; }
+    aside { border-left: 1px solid var(--rule); padding-left: 24px; font-family: var(--sans); }
+    aside h2 { font-family: var(--sans); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 2px solid var(--primary); padding-bottom: 8px; }
+    aside a { display: block; text-decoration: none; padding: 10px 0; border-bottom: 1px solid var(--rule); font-weight: 600; line-height: 1.35; }
+    aside a:hover { color: var(--primary); }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } aside { border: 0; padding: 0; } }
+  </style>
+  <div class="layout">
+    <article>
+      <span class="kicker">{post.category}</span>
+      <h1>{post.title}</h1>
+      <div class="meta">{fmt(post.published_at)} · Updated {fmt(post.updated_at)}</div>
+      {post.featured_image && <img class="featimg" src={post.featured_image} alt={post.title} fetchpriority="high" />}
+      <div class="body" set:html={post.body} />
+    </article>
+    <aside>
+      <h2>Latest News</h2>
+      {sidebar.map((p) => <a href={`/news/${p.slug}/`}>{p.title}</a>)}
+    </aside>
+  </div>
 </Base>

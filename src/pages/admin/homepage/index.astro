@@ -1,0 +1,51 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { featuredPosts, db } from '../../../lib/db';
+const featured = featuredPosts();
+const recent = db.prepare("SELECT id, title FROM posts WHERE type='post' AND status='published' ORDER BY published_at DESC LIMIT 30").all() as any[];
+---
+<Admin title="Homepage Order" active="homepage">
+  <div class="card">
+    <p class="meta">Drag to reorder. Slot 1 is the big featured story; slots 2–5 are the 2×2 grid.
+    Latest News below them always follows publish date — edit a post's publish date to move it there.</p>
+    <div id="slots">
+      {featured.map((p, i) => (
+        <div class="card" draggable="true" data-id={p.id} style="display:flex;align-items:center;gap:12px;padding:10px;cursor:grab;">
+          <b style="color:var(--primary);width:70px;">{i === 0 ? 'HERO' : `Slot ${i + 1}`}</b>
+          <img src={p.featured_image} style="width:70px;height:44px;object-fit:cover;border-radius:3px;" />
+          <span style="flex:1;">{p.title}</span>
+          <select data-swap style="width:auto;"><option value="">Replace with…</option>
+            {recent.map((r) => <option value={r.id}>{r.title}</option>)}
+          </select>
+        </div>
+      ))}
+    </div>
+    <button class="btn" id="save">Save order</button>
+  </div>
+  <script is:inline>
+    const slots = document.getElementById('slots');
+    let dragEl = null;
+    slots.addEventListener('dragstart', (e) => { dragEl = e.target.closest('[draggable]'); });
+    slots.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const over = e.target.closest('[draggable]');
+      if (!over || over === dragEl) return;
+      const rect = over.getBoundingClientRect();
+      slots.insertBefore(dragEl, (e.clientY - rect.top) / rect.height > 0.5 ? over.nextSibling : over);
+      relabel();
+    });
+    function relabel() {
+      [...slots.children].forEach((el, i) => el.querySelector('b').textContent = i === 0 ? 'HERO' : `Slot ${i + 1}`);
+    }
+    slots.addEventListener('change', async (e) => {
+      const sel = e.target.closest('select[data-swap]'); if (!sel || !sel.value) return;
+      sel.closest('[draggable]').dataset.id = sel.value;
+      sel.closest('[draggable]').querySelector('span').textContent = sel.options[sel.selectedIndex].text + ' (unsaved)';
+    });
+    document.getElementById('save').onclick = async () => {
+      const order = [...slots.children].map((el) => Number(el.dataset.id));
+      await api('/api/admin/settings', { key: 'featured_order', value: order });
+      toast('Homepage order saved'); location.reload();
+    };
+  </script>
+</Admin>

@@ -2,6 +2,10 @@ node_modules/
 dist/
 .astro/
 
+# Runtime data — lives on the server only
+data/
+uploads/
+
 # Secrets — never commit
 .env
 .env.*

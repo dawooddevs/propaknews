@@ -1,0 +1,32 @@
+---
+---
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" /><title>Login — ProPak Admin</title>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', Arial, sans-serif; background: #1d2327; display: grid; place-items: center; min-height: 100vh; margin: 0; }
+  form { background: #fff; padding: 32px; border-radius: 8px; width: 320px; }
+  h1 { font-size: 1.2rem; margin: 0 0 6px; } h1 span { color: #d64000; }
+  input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font: inherit; }
+  button { width: 100%; padding: 11px; background: #d64000; border: 0; border-radius: 4px; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 8px; }
+  .err { color: #a00000; font-size: 0.85rem; min-height: 1.2em; margin: 4px 0; }
+</style></head>
+<body>
+  <form id="f">
+    <h1>Pro<span>Pak</span> News — Admin</h1>
+    <p class="err" id="err"></p>
+    <input name="username" id="u" placeholder="Username" autocomplete="username" required />
+    <input name="password" id="p" type="password" placeholder="Password" autocomplete="current-password" required />
+    <button>Log in</button>
+  </form>
+  <script>
+    document.getElementById('f')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const r = await fetch('/api/admin/login', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ username: (document.getElementById('u') as HTMLInputElement).value,
+                               password: (document.getElementById('p') as HTMLInputElement).value }) });
+      if (r.ok) location.href = '/admin/';
+      else document.getElementById('err')!.textContent = (await r.json()).error || 'Login failed';
+    });
+  </script>
+</body></html>

@@ -1,0 +1,52 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+---
+<Admin title="Media Library" active="media">
+  <div class="card" id="drop" style="border:2px dashed #b9bec6;text-align:center;padding:40px;cursor:pointer;">
+    <b>Drag & drop images here</b> or click to choose files<br/>
+    <span class="meta">Everything is converted to webp automatically (max width 1600px, quality 80).</span>
+    <input type="file" id="file" multiple accept="image/*" style="display:none;" />
+  </div>
+  <div id="grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;"></div>
+  <script is:inline>
+    const grid = document.getElementById('grid'), drop = document.getElementById('drop'), file = document.getElementById('file');
+    let offset = 0, done = false, busy = false;
+    async function load(reset) {
+      if (busy || (done && !reset)) return; busy = true;
+      if (reset) { offset = 0; done = false; grid.innerHTML = ''; }
+      const list = await (await fetch(`/api/admin/upload?offset=${offset}`)).json();
+      for (const m of list) {
+        const d = document.createElement('div');
+        d.className = 'card'; d.style.padding = '8px';
+        d.innerHTML = `<img src="/uploads/${m.filename}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;">
+          <div class="meta" style="word-break:break-all;margin:6px 0;">${m.original_name}<br>${m.width}×${m.height} · ${(m.size/1024).toFixed(0)} KB</div>
+          <button class="btn sm gray" data-copy="/uploads/${m.filename}">Copy URL</button>
+          <button class="btn sm red" data-del="${m.id}">Delete</button>`;
+        grid.appendChild(d);
+      }
+      offset += list.length; if (list.length < 40) done = true; busy = false;
+    }
+    grid.onclick = async (e) => {
+      const c = e.target.closest('[data-copy]'); const del = e.target.closest('[data-del]');
+      if (c) { await navigator.clipboard.writeText(location.origin + c.dataset.copy); toast('URL copied'); }
+      if (del && confirm('Delete this file?')) {
+        await fetch('/api/admin/upload', { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: Number(del.dataset.del) }) });
+        load(true);
+      }
+    };
+    async function upload(files) {
+      const fd = new FormData(); for (const f of files) fd.append('files', f);
+      toast('Uploading & converting to webp…');
+      const res = await (await fetch('/api/admin/upload', { method: 'POST', body: fd })).json();
+      const errs = res.filter((r) => r.error); if (errs.length) alert(errs.map((e) => e.error).join('\n'));
+      load(true);
+    }
+    drop.onclick = () => file.click();
+    file.onchange = () => { upload(file.files); file.value = ''; };
+    drop.ondragover = (e) => { e.preventDefault(); drop.style.borderColor = '#d64000'; };
+    drop.ondragleave = () => drop.style.borderColor = '#b9bec6';
+    drop.ondrop = (e) => { e.preventDefault(); drop.style.borderColor = '#b9bec6'; upload(e.dataTransfer.files); };
+    window.addEventListener('scroll', () => { if (window.innerHeight + window.scrollY > document.body.offsetHeight - 400) load(false); });
+    load(true);
+  </script>
+</Admin>

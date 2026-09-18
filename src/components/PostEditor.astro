@@ -1,0 +1,102 @@
+---
+import { getPost } from '../lib/db';
+interface Props { type: 'post' | 'page' }
+const { type } = Astro.props;
+const id = Number(Astro.url.searchParams.get('id') || 0);
+const post = id ? getPost(id) : null;
+const seo = post?.seo || {};
+const dtLocal = post ? post.published_at.replace(' ', 'T').slice(0, 16) : '';
+---
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;" id="editor"
+     data-id={post?.id || ''} data-type={type}>
+  <div>
+    <div class="card">
+      <label>Title</label>
+      <input type="text" id="f_title" value={post?.title || ''} placeholder="Post title" />
+      <label>Slug (URL)</label>
+      <input type="text" id="f_slug" value={post?.slug || ''} placeholder="auto-generated-from-title" />
+      <label>Excerpt</label>
+      <textarea id="f_excerpt" rows="2">{post?.excerpt || ''}</textarea>
+      <label>Body (HTML allowed)</label>
+      <div style="margin-bottom:6px;">
+        <button class="btn sm gray" id="insertImg" type="button">🖼 Insert image from Media</button>
+      </div>
+      <textarea class="code" id="f_body">{post?.body || ''}</textarea>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">SEO</h3>
+      <label>Meta title <small>(empty = post title)</small></label>
+      <input type="text" id="s_metaTitle" value={seo.metaTitle || ''} />
+      <label>Meta description <small>(empty = excerpt)</small></label>
+      <textarea id="s_metaDesc" rows="2">{seo.metaDesc || ''}</textarea>
+      <label>Focus keywords</label>
+      <div id="kwPreview" style="border:1px solid #c8ccd2;border-radius:4px;padding:8px;min-height:38px;cursor:pointer;background:#fff;">
+        <span class="meta">Click to add / view all keywords…</span>
+      </div>
+      <label>Canonical URL <small>(empty = this page's URL)</small></label>
+      <input type="text" id="s_canonical" value={seo.canonical || ''} />
+      <label><input type="checkbox" id="s_noindex" checked={!!seo.noindex} style="width:auto;" /> Noindex (hide from Google)</label>
+      <h4>Social sharing (Open Graph / Twitter)</h4>
+      <label>OG title <small>(empty = meta title)</small></label>
+      <input type="text" id="s_ogTitle" value={seo.ogTitle || ''} />
+      <label>OG description</label>
+      <textarea id="s_ogDesc" rows="2">{seo.ogDesc || ''}</textarea>
+      <label>OG image URL <small>(empty = featured image)</small></label>
+      <div style="display:flex;gap:6px;"><input type="text" id="s_ogImage" value={seo.ogImage || ''} />
+        <button class="btn sm gray" type="button" id="pickOg">Pick</button></div>
+      <label>Twitter card</label>
+      <select id="s_twitterCard">
+        <option value="summary_large_image" selected={!seo.twitterCard || seo.twitterCard === 'summary_large_image'}>summary_large_image</option>
+        <option value="summary" selected={seo.twitterCard === 'summary'}>summary</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <label>Status</label>
+      <select id="f_status">
+        <option value="draft" selected={!post || post.status === 'draft'}>Draft</option>
+        <option value="published" selected={post?.status === 'published'}>Published</option>
+      </select>
+      <label>Publish date <small>(controls Latest News order)</small></label>
+      <input type="datetime-local" id="f_published_at" value={dtLocal} />
+      {type === 'post' && <>
+        <label>Category</label>
+        <input type="text" id="f_category" value={post?.category || 'General'} list="cats" />
+        <datalist id="cats"><option>Business</option><option>Tech and Telecom</option><option>Education</option><option>Sports</option><option>General</option></datalist>
+      </>}
+      <label>Featured image</label>
+      <img id="featPreview" src={post?.featured_image || ''} style={`width:100%;border-radius:4px;${post?.featured_image ? '' : 'display:none;'}`} />
+      <input type="hidden" id="f_featured_image" value={post?.featured_image || ''} />
+      <button class="btn sm gray" type="button" id="pickFeat" style="margin-top:6px;">Choose from Media</button>
+      <button class="btn sm gray" type="button" id="clearFeat">Remove</button>
+      <hr />
+      <button class="btn" id="saveBtn" style="width:100%;">Save</button>
+      <p class="meta" id="viewLink" style="text-align:center;"></p>
+    </div>
+  </div>
+</div>
+
+<!-- keywords modal -->
+<div class="modal" id="kwModal"><div class="box">
+  <h3 style="margin-top:0;">Focus keywords</h3>
+  <p class="meta">Type a keyword and press Enter. Paste many separated by commas. No limit.</p>
+  <input type="text" id="kwInput" placeholder="add keyword, or paste: keyword one, keyword two, …" />
+  <div id="kwList" style="display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;max-height:40vh;overflow:auto;"></div>
+  <button class="btn" onclick="document.getElementById('kwModal').classList.remove('open')">Done</button>
+</div></div>
+
+<!-- media picker modal -->
+<div class="modal" id="mediaModal"><div class="box">
+  <h3 style="margin-top:0;">Media library</h3>
+  <input type="file" id="mUp" multiple accept="image/*" />
+  <div id="mGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;"></div>
+  <button class="btn gray" style="margin-top:12px;" onclick="document.getElementById('mediaModal').classList.remove('open')">Close</button>
+</div></div>
+
+<script is:inline define:vars={{ initialKeywords: seo.keywords || [] }}>
+  window.__keywords = initialKeywords;
+</script>
+<script is:inline src="/admin-editor.js"></script>

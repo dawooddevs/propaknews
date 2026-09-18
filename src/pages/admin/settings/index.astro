@@ -1,0 +1,48 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { getSetting } from '../../../lib/db';
+const seo = getSetting('seo', {});
+---
+<Admin title="SEO & Settings" active="settings">
+  <div class="card">
+    <h3 style="margin-top:0;">Site SEO</h3>
+    <label>Site title</label><input type="text" id="siteTitle" value={seo.siteTitle || ''} />
+    <label>Tagline</label><input type="text" id="tagline" value={seo.tagline || ''} />
+    <label>Default meta description</label><textarea id="metaDescription" rows="2">{seo.metaDescription || ''}</textarea>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">Google</h3>
+    <label>Google Analytics ID <small>(e.g. G-XXXXXXX)</small></label>
+    <input type="text" id="gaId" value={seo.gaId || ''} />
+    <label>Search Console verification code <small>(content of the meta tag only)</small></label>
+    <input type="text" id="gscVerification" value={seo.gscVerification || ''} />
+    <label>AdSense client ID <small>(ca-pub-XXXXXXXXXXXX)</small></label>
+    <input type="text" id="adsenseClient" value={seo.adsenseClient || ''} />
+    <label><input type="checkbox" id="adsenseAuto" checked={!!seo.adsenseAuto} style="width:auto;" /> Enable AdSense Auto Ads script site-wide</label>
+  </div>
+  <div class="card">
+    <button class="btn" id="save">Save settings</button>
+    <button class="btn red" id="clear">Clear Cache</button>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">Change password</h3>
+    <label>New password (min 8 chars)</label><input type="password" id="pw" autocomplete="new-password" />
+    <button class="btn gray" id="pwBtn" style="margin-top:10px;">Update password</button>
+  </div>
+  <script is:inline>
+    const $ = (id) => document.getElementById(id);
+    $('save').onclick = async () => {
+      await api('/api/admin/settings', { key: 'seo', value: {
+        siteTitle: $('siteTitle').value, tagline: $('tagline').value, metaDescription: $('metaDescription').value,
+        gaId: $('gaId').value.trim(), gscVerification: $('gscVerification').value.trim(),
+        adsenseClient: $('adsenseClient').value.trim(), adsenseAuto: $('adsenseAuto').checked,
+      }});
+      toast('Settings saved');
+    };
+    $('clear').onclick = () => api('/api/admin/settings', { action: 'clear-cache' }).then(() => toast('Cache cleared'));
+    $('pwBtn').onclick = async () => {
+      await api('/api/admin/settings', { action: 'password', password: $('pw').value });
+      alert('Password changed. Please log in again.'); location.href = '/admin/login';
+    };
+  </script>
+</Admin>

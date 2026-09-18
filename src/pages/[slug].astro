@@ -1,0 +1,13 @@
+---
+import Base from '../layouts/Base.astro';
+import { getPostBySlug } from '../lib/db';
+const { slug } = Astro.params;
+const page = slug ? getPostBySlug(slug, 'page') : null;
+if (!page) return new Response(null, { status: 404, statusText: 'Not found' });
+---
+<Base title={`${page.title} — ProPak News`}>
+  <div style="max-width: 760px;">
+    <h1>{page.title}</h1>
+    <div set:html={page.body} />
+  </div>
+</Base>

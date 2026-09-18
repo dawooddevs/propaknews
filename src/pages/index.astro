@@ -1,19 +1,88 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getLatestArticles } from '../lib/cms';
+import { featuredPosts, publishedPosts, getSetting } from '../lib/db';
+import { cached } from '../lib/cache';
 
-const articles = await getLatestArticles();
+const featured = cached('home:featured', 30_000, () => featuredPosts());
+const hero = featured[0];
+const grid = featured.slice(1, 5);
+const latest = cached('home:latest', 30_000, () =>
+  publishedPosts(12, 0, featured.map((p) => p.id)));
+const seo = getSetting('seo', {});
+const fmt = (d: string) => {
+  const dt = new Date(d.replace(' ', 'T') + 'Z');
+  return dt.toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' }) + ' | ' +
+    dt.toLocaleDateString('en-PK', { month: 'short', day: 'numeric', year: 'numeric' });
+};
 ---
-<Base title="ProPak News — Latest news from Pakistan">
-  {articles.map((a) => (
-    <article style="border-bottom: 1px solid var(--rule); padding: 18px 0;">
-      <div style="color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
-        {a.category} · {new Date(a.publishedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
+<Base title={`${seo.siteTitle || 'ProPak News'} — ${seo.tagline || ''}`}>
+  <style>
+    .heroGrid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 14px; }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .card, .heroCard { position: relative; display: block; overflow: hidden; border-radius: 4px; text-decoration: none; background: #222; }
+    .card img, .heroCard img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.85; transition: transform 0.3s; }
+    .card:hover img, .heroCard:hover img { transform: scale(1.03); }
+    .card h3, .heroCard h2 { position: absolute; bottom: 0; left: 0; right: 0; margin: 0; padding: 40px 16px 14px;
+      color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.85)); line-height: 1.3; }
+    .heroCard { min-height: 420px; } .heroCard h2 { font-size: 1.7rem; }
+    .card { min-height: 200px; } .card h3 { font-size: 1.05rem; }
+    .secHead { display: flex; align-items: center; gap: 10px; margin: 36px 0 8px; }
+    .secHead::before { content: ''; width: 6px; height: 26px; background: var(--primary); }
+    .secHead h2 { margin: 0; font-family: var(--sans); letter-spacing: 0.5px; color: #222; }
+    .latestGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .latestGrid article a { text-decoration: none; }
+    .latestGrid img { aspect-ratio: 16/10; object-fit: cover; width: 100%; border-radius: 3px; background: #eee; }
+    .latestGrid h3 { margin: 6px 0 0; font-size: 1.02rem; line-height: 1.35; }
+    .more { display: block; margin: 28px auto 0; padding: 10px 26px; font-family: var(--sans); font-weight: 600;
+      background: var(--primary); color: #fff; border: 0; border-radius: 3px; cursor: pointer; }
+    @media (max-width: 900px) { .heroGrid { grid-template-columns: 1fr; } .latestGrid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+
+  {hero && (
+    <div class="heroGrid">
+      <a class="heroCard" href={`/news/${hero.slug}/`}>
+        <img src={hero.featured_image} alt={hero.title} fetchpriority="high" />
+        <h2>{hero.title}</h2>
+      </a>
+      <div class="cards">
+        {grid.map((p) => (
+          <a class="card" href={`/news/${p.slug}/`}>
+            <img src={p.featured_image} alt={p.title} loading="lazy" />
+            <h3>{p.title}</h3>
+          </a>
+        ))}
       </div>
-      <h2 style="margin: 6px 0;">
-        <a href={`/news/${a.slug}/`} style="color: var(--ink); text-decoration: none;">{a.title}</a>
-      </h2>
-      <p style="margin: 0; color: var(--muted);">{a.excerpt}</p>
-    </article>
-  ))}
+    </div>
+  )}
+
+  <div class="secHead"><h2>LATEST NEWS</h2></div>
+  <div class="latestGrid" id="latest">
+    {latest.map((p) => (
+      <article>
+        <a href={`/news/${p.slug}/`}>
+          <img src={p.featured_image} alt={p.title} loading="lazy" />
+          <div class="meta">{fmt(p.published_at)}</div>
+          <h3>{p.title}</h3>
+        </a>
+      </article>
+    ))}
+  </div>
+  <button class="more" id="moreBtn" data-offset="12" data-exclude={featured.map((p) => p.id).join(',')}>Load more</button>
+
+  <script>
+    const btn = document.getElementById('moreBtn') as HTMLButtonElement;
+    btn?.addEventListener('click', async () => {
+      const offset = Number(btn.dataset.offset);
+      const r = await fetch(`/api/posts?offset=${offset}&exclude=${btn.dataset.exclude}`);
+      const posts = await r.json();
+      const grid = document.getElementById('latest')!;
+      for (const p of posts) {
+        const el = document.createElement('article');
+        el.innerHTML = `<a href="/news/${p.slug}/"><img src="${p.featured_image}" alt="" loading="lazy" style="aspect-ratio:16/10;object-fit:cover;width:100%;border-radius:3px"><div class="meta">${p.date}</div><h3>${p.title}</h3></a>`;
+        grid.appendChild(el);
+      }
+      btn.dataset.offset = String(offset + posts.length);
+      if (posts.length < 12) btn.remove();
+    });
+  </script>
 </Base>

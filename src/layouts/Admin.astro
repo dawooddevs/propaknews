@@ -1,0 +1,73 @@
+---
+interface Props { title: string; active?: string; }
+const { title, active = '' } = Astro.props;
+const nav = [
+  ['dashboard', '/admin/', 'Dashboard'],
+  ['posts', '/admin/posts/', 'Posts'],
+  ['pages', '/admin/pages/', 'Pages'],
+  ['media', '/admin/media/', 'Media'],
+  ['homepage', '/admin/homepage/', 'Homepage Order'],
+  ['ticker', '/admin/ticker/', 'Ticker Bar'],
+  ['menu', '/admin/menu/', 'Menu'],
+  ['settings', '/admin/settings/', 'SEO & Settings'],
+];
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>{title} — ProPak Admin</title>
+  <style is:global>
+    :root { --primary: #d64000; --secondary: #a00000; --bg: #f4f5f7; --card: #fff; --ink: #21252b; --rule: #e2e4e8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--ink); display: flex; min-height: 100vh; }
+    aside.nav { width: 210px; background: #1d2327; color: #cfd4d9; flex-shrink: 0; }
+    aside.nav .logo { padding: 16px; font-weight: 700; color: #fff; border-bottom: 1px solid #333; }
+    aside.nav a { display: block; padding: 11px 16px; color: inherit; text-decoration: none; font-size: 0.92rem; }
+    aside.nav a.on, aside.nav a:hover { background: var(--primary); color: #fff; }
+    .content { flex: 1; padding: 24px; max-width: 1100px; }
+    h1 { margin-top: 0; font-size: 1.4rem; }
+    .card { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 18px; margin-bottom: 18px; }
+    input[type=text], input[type=password], input[type=datetime-local], input[type=email], select, textarea {
+      width: 100%; padding: 8px 10px; border: 1px solid #c8ccd2; border-radius: 4px; font: inherit; }
+    textarea.code { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem; min-height: 320px; }
+    label { display: block; font-weight: 600; font-size: 0.85rem; margin: 12px 0 4px; }
+    .btn { display: inline-block; background: var(--primary); color: #fff; border: 0; border-radius: 4px; padding: 9px 18px; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+    .btn.gray { background: #6b7280; } .btn.red { background: var(--secondary); } .btn.sm { padding: 5px 10px; font-size: 0.8rem; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--rule); font-size: 0.9rem; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+    .tabs a { padding: 7px 14px; border-radius: 4px 4px 0 0; text-decoration: none; color: var(--ink); background: #e7e9ec; font-size: 0.88rem; }
+    .tabs a.on { background: var(--primary); color: #fff; }
+    .pill { font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; background: #e5e7eb; }
+    .pill.published { background: #d1f2dd; color: #14683a; } .pill.draft { background: #fdeeba; color: #7c5b00; } .pill.trash { background: #fbd5d5; color: #8c1c1c; }
+    .toast { position: fixed; bottom: 18px; right: 18px; background: #16a34a; color: #fff; padding: 10px 18px; border-radius: 6px; display: none; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 50; }
+    .modal.open { display: flex; }
+    .modal .box { background: #fff; border-radius: 8px; padding: 20px; width: min(720px, 92vw); max-height: 84vh; overflow: auto; }
+  </style>
+</head>
+<body>
+  <aside class="nav">
+    <div class="logo">ProPak Admin</div>
+    {nav.map(([key, url, label]) => <a href={url} class={active === key ? 'on' : ''}>{label}</a>)}
+    <a href="/" target="_blank">↗ View site</a>
+    <a href="#" onclick="fetch('/api/admin/logout',{method:'POST'}).then(()=>location.href='/admin/login')">Log out</a>
+  </aside>
+  <div class="content">
+    <h1>{title}</h1>
+    <slot />
+    <div class="toast" id="toast"></div>
+  </div>
+  <script is:inline>
+    window.toast = (msg) => { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2200); };
+    window.api = async (url, body) => {
+      const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { alert(j.error || 'Request failed'); throw new Error(j.error); }
+      return j;
+    };
+  </script>
+</body>
+</html>

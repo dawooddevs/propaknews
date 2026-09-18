@@ -1,0 +1,40 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { getSetting } from '../../../lib/db';
+const menu = getSetting('menu', []);
+---
+<Admin title="Menu" active="menu">
+  <div class="card">
+    <p class="meta">Navbar links. Drag rows to reorder. URLs can be categories (<code>/category/business/</code>), pages (<code>/about-us/</code>) or external.</p>
+    <table><thead><tr><th style="width:20px;"></th><th>Label</th><th>URL</th><th></th></tr></thead>
+      <tbody id="rows"></tbody></table>
+    <button class="btn gray sm" id="add">+ Add link</button>
+    <hr /><button class="btn" id="save">Save menu</button>
+  </div>
+  <script is:inline define:vars={{ menu }}>
+    const rows = document.getElementById('rows');
+    let dragEl = null;
+    function row(m = { label: '', url: '' }) {
+      const tr = document.createElement('tr');
+      tr.draggable = true;
+      tr.innerHTML = `<td style="cursor:grab;">☰</td><td><input type="text" value="${m.label}" data-f="label"></td>
+        <td><input type="text" value="${m.url}" data-f="url"></td>
+        <td><button class="btn sm red" onclick="this.closest('tr').remove()">✕</button></td>`;
+      rows.appendChild(tr);
+    }
+    menu.forEach(row);
+    rows.addEventListener('dragstart', (e) => dragEl = e.target.closest('tr'));
+    rows.addEventListener('dragover', (e) => {
+      e.preventDefault(); const over = e.target.closest('tr');
+      if (over && over !== dragEl) rows.insertBefore(dragEl, over);
+    });
+    document.getElementById('add').onclick = () => row();
+    document.getElementById('save').onclick = async () => {
+      const value = [...rows.children].map((tr) => {
+        const o = {}; tr.querySelectorAll('[data-f]').forEach((i) => o[i.dataset.f] = i.value); return o;
+      }).filter((o) => o.label && o.url);
+      await api('/api/admin/settings', { key: 'menu', value });
+      toast('Menu saved');
+    };
+  </script>
+</Admin>
