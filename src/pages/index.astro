@@ -23,17 +23,17 @@ const fmt = (d: string) => {
     .card img, .heroCard img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.85; transition: transform 0.3s; }
     .card:hover img, .heroCard:hover img { transform: scale(1.03); }
     .card h3, .heroCard h2 { position: absolute; bottom: 0; left: 0; right: 0; margin: 0; padding: 40px 16px 14px;
-      color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.85)); font-weight: 500; }
+      color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.85)); font-weight: 700; }
     .heroCard { min-height: 420px; } .heroCard h2 { font-size: var(--fs-h4); line-height: var(--lh-h4); }
     .card { min-height: 200px; } .card h3 { font-size: var(--fs-h5); line-height: var(--lh-h5); }
     .secHead { display: flex; align-items: center; gap: 10px; margin: 36px 0 8px; }
     .secHead::before { content: ''; width: 6px; height: 26px; background: var(--primary); }
-    .secHead h2 { margin: 0; font-size: var(--fs-h6); line-height: var(--lh-h6); font-weight: 700; letter-spacing: 0; color: #222; }
+    .secHead h2 { margin: 0; font-size: var(--fs-sechead); line-height: var(--lh-sechead); font-weight: 700; text-transform: uppercase; letter-spacing: 0; color: #222; }
     .latestGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
     .latestGrid article a { text-decoration: none; }
     .latestGrid img { aspect-ratio: 16/10; object-fit: cover; width: 100%; border-radius: 3px; background: #eee; }
     .latestGrid .meta { font-size: var(--fs-xs); line-height: var(--lh-xs); }
-    .latestGrid h3 { margin: 6px 0 0; font-size: var(--fs-h6); line-height: var(--lh-h6); font-weight: 500; }
+    .latestGrid h3 { margin: 6px 0 0; font-size: var(--fs-h6); line-height: var(--lh-h6); font-weight: 700; }
     .more { display: block; margin: 28px auto 0; padding: 10px 26px; font-family: var(--sans); font-weight: 500; font-size: var(--fs-large); line-height: var(--lh-large);
       background: var(--primary); color: #fff; border: 0; border-radius: 3px; cursor: pointer; }
     @media (max-width: 900px) { .heroGrid { grid-template-columns: 1fr; } .latestGrid { grid-template-columns: repeat(2, 1fr); } }

@@ -40,17 +40,19 @@ const fmt = (d: string) => new Date(d.replace(' ', 'T') + 'Z')
       description={s.metaDesc || post.excerpt} seoHead={seoHead}>
   <style>
     .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 40px; }
-    article h1 { font-size: var(--fs-article); line-height: var(--lh-article); font-weight: 500; margin: 8px 0 12px; }
-    .body { font-size: var(--fs-body); line-height: var(--lh-body); margin-top: 16px; }
-    .body :global(p), .body :global(li) { font-size: var(--fs-body); line-height: var(--lh-body); }
+    article h1 { font-size: var(--fs-article); line-height: var(--lh-article); font-weight: 700; color: #000; margin: 8px 0 12px; }
+    .body { font-family: var(--serif); font-size: var(--fs-body); line-height: var(--lh-body); margin-top: 16px; }
+    .body :global(p), .body :global(li) { font-family: var(--serif); font-size: var(--fs-body); line-height: var(--lh-body); }
+    .body :global(p) { padding-bottom: 20px; margin: 0; }
+    .body :global(p:first-of-type) { font-weight: 600; color: #333; }
     .body :global(h2) { font-size: var(--fs-h4); line-height: var(--lh-h4); margin: 1.2em 0 0.4em; }
     .body :global(h3) { font-size: var(--fs-h5); line-height: var(--lh-h5); margin: 1.2em 0 0.4em; }
     .body :global(img) { border-radius: 4px; }
     .featimg { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; margin: 14px 0; }
     aside { border-left: 1px solid var(--rule); padding-left: 24px; }
-    aside h2 { font-size: var(--fs-h6); line-height: var(--lh-h6); font-weight: 700; letter-spacing: 0; margin: 0 0 4px;
-      border-bottom: 2px solid var(--primary); padding-bottom: 8px; }
-    aside a { display: block; text-decoration: none; padding: 10px 0; border-bottom: 1px solid var(--rule); font-weight: 500; font-size: var(--fs-h6); line-height: var(--lh-h6); }
+    aside h2 { font-size: 18px; line-height: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; margin: 0 0 4px;
+      border-bottom: 3px solid #000; padding-bottom: 5px; }
+    aside a { display: block; text-decoration: none; padding: 10px 0; border-bottom: 1px solid var(--rule); font-weight: 700; font-size: 14px; line-height: 18px; color: #111; }
     aside a:hover { color: var(--primary); }
     @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } aside { border: 0; padding: 0; } }
   </style>
