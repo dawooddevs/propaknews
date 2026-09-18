@@ -1,0 +1,17 @@
+[Unit]
+Description=propaknews.com Astro SSR server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/propaknews
+EnvironmentFile=/var/www/propaknews/.env
+Environment=HOST=127.0.0.1
+Environment=PORT=4321
+ExecStart=/usr/bin/node /var/www/propaknews/dist/server/entry.mjs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

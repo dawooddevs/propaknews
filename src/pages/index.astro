@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import { getLatestArticles } from '../lib/cms';
+
+const articles = await getLatestArticles();
+---
+<Base title="ProPak News — Latest news from Pakistan">
+  {articles.map((a) => (
+    <article style="border-bottom: 1px solid var(--rule); padding: 18px 0;">
+      <div style="color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+        {a.category} · {new Date(a.publishedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
+      </div>
+      <h2 style="margin: 6px 0;">
+        <a href={`/news/${a.slug}/`} style="color: var(--ink); text-decoration: none;">{a.title}</a>
+      </h2>
+      <p style="margin: 0; color: var(--muted);">{a.excerpt}</p>
+    </article>
+  ))}
+</Base>

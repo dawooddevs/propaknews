@@ -1,74 +1,64 @@
 # Server setup — propaknews.com
 
-Ubuntu 24.04. Run as root on the VPS. If a command is "not found", export PATH
+Ubuntu 24.04, run as root on the VPS. If a command is "not found", export PATH
 first (see CLAUDE.md).
 
 ## 1. Install the stack
 
     apt update
-    apt install -y nginx mysql-server php8.3-fpm php8.3-mysql php8.3-curl \
-        php8.3-gd php8.3-mbstring php8.3-xml php8.3-zip php8.3-intl \
-        certbot python3-certbot-nginx
+    apt install -y nginx certbot python3-certbot-nginx
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    apt install -y nodejs
+    node --version   # expect v22.x
 
-## 2. Create the database
+## 2. Get the code
 
-    mysql -e "CREATE DATABASE propaknews CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-    mysql -e "CREATE USER 'propak'@'localhost' IDENTIFIED BY 'USE-A-STRONG-PASSWORD';"
-    mysql -e "GRANT ALL ON propaknews.* TO 'propak'@'localhost'; FLUSH PRIVILEGES;"
-
-Store that password in `wp-config.php` only. Never commit it.
-
-## 3. Install WordPress core
-
-Core is not tracked in git — it is installed in place:
+The repo should already be cloned at /var/www/propaknews (deploy key setup done).
 
     cd /var/www/propaknews
-    curl -O https://wordpress.org/latest.tar.gz
-    tar -xzf latest.tar.gz --strip-components=1 wordpress/
-    rm latest.tar.gz
-    cp wp-config-sample.php wp-config.php
+    git pull origin main
+    cp .env.example .env    # fill in Sanity values later (docs/SANITY.md)
 
-Edit `wp-config.php` with the DB name, user and password, then paste fresh salts
-from https://api.wordpress.org/secret-key/1.1/salt/
+## 3. First build
 
+    npm ci
+    npm run build
     chown -R www-data:www-data /var/www/propaknews
-    find /var/www/propaknews -type d -exec chmod 755 {} \;
-    find /var/www/propaknews -type f -exec chmod 644 {} \;
-    chmod 640 wp-config.php
 
-## 4. Enable the nginx site
+## 4. Run as a service
 
-Symlink the repo copy so config stays version-controlled:
+    ln -sf /var/www/propaknews/deploy/propaknews.service /etc/systemd/system/propaknews.service
+    systemctl daemon-reload
+    systemctl enable --now propaknews
+    systemctl status propaknews          # should be active (running)
+    curl -s 127.0.0.1:4321 | head -5     # should print HTML
 
-    ln -sf /var/www/propaknews/deploy/nginx/propaknews.com.conf \
-           /etc/nginx/sites-available/propaknews.com
-    ln -sf /etc/nginx/sites-available/propaknews.com \
-           /etc/nginx/sites-enabled/propaknews.com
+## 5. Enable the nginx site
+
+    ln -sf /var/www/propaknews/deploy/nginx-propaknews.com.conf /etc/nginx/sites-available/propaknews.com
+    ln -sf /etc/nginx/sites-available/propaknews.com /etc/nginx/sites-enabled/propaknews.com
     rm -f /etc/nginx/sites-enabled/default
     nginx -t && systemctl reload nginx
 
-## 5. DNS
-
-Point both records at the VPS IP before requesting a certificate:
+## 6. DNS (in Spaceship)
 
 | Type | Host | Value |
 |---|---|---|
 | A | @ | VPS IP |
 | A | www | VPS IP |
 
-Verify before continuing — certbot fails if DNS has not propagated:
+Verify before requesting a certificate:
 
     dig propaknews.com +short
     dig www.propaknews.com +short
 
-## 6. SSL
+## 7. SSL
 
     certbot --nginx -d propaknews.com -d www.propaknews.com
 
-Certbot edits the nginx config to add TLS and the HTTP->HTTPS redirect. Renewal
-is automatic via systemd timer; confirm with `certbot renew --dry-run`.
+Renewal is automatic; confirm with `certbot renew --dry-run`.
 
-## 7. Firewall
+## 8. Firewall
 
     ufw allow OpenSSH
     ufw allow 'Nginx Full'
@@ -78,11 +68,8 @@ is automatic via systemd timer; confirm with `certbot renew --dry-run`.
 
     /var/www/propaknews/scripts/deploy.sh
 
-## Backups — not covered by git
+## Backups
 
-Articles are in MySQL, media in `wp-content/uploads/`. Set up a cron job:
-
-    mysqldump propaknews | gzip > /backups/propaknews-$(date +%F).sql.gz
-    tar -czf /backups/uploads-$(date +%F).tar.gz wp-content/uploads
-
-Copy them off the VPS — a backup on the same box is not a backup.
+Content lives in Sanity's cloud (backed up by them; `sanity dataset export`
+for your own copies). The repo covers all code. The VPS holds nothing unique
+except .env — keep a copy of it somewhere safe.

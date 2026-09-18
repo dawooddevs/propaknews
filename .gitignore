@@ -1,29 +1,12 @@
+node_modules/
+dist/
+.astro/
+
 # Secrets — never commit
-wp-config.php
 .env
+.env.*
 *.pem
 *.key
 
-# WordPress core (installed on server, not tracked)
-/wp-admin/
-/wp-includes/
-/wp-*.php
-/index.php
-/xmlrpc.php
-/license.txt
-/readme.html
-
-# Content that lives on the server
-wp-content/uploads/
-wp-content/cache/
-wp-content/upgrade/
-wp-content/backup*/
-wp-content/advanced-cache.php
-wp-content/object-cache.php
-
-# Noise
 *.log
-*.sql
-*.sql.gz
 .DS_Store
-node_modules/

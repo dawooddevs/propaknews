@@ -1,0 +1,18 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getArticle } from '../../lib/cms';
+
+const { slug } = Astro.params;
+const article = slug ? await getArticle(slug) : null;
+if (!article) return new Response(null, { status: 404, statusText: 'Not found' });
+---
+<Base title={`${article.title} — ProPak News`} description={article.excerpt}>
+  <article>
+    <div style="color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+      {article.category} · {new Date(article.publishedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
+    </div>
+    <h1 style="margin: 8px 0 16px; line-height: 1.25;">{article.title}</h1>
+    {article.imageUrl && <img src={article.imageUrl} alt="" style="width: 100%; height: auto; border-radius: 4px;" />}
+    <div set:html={article.body} />
+  </article>
+</Base>

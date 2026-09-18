@@ -1,0 +1,52 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'Latest news from Pakistan and around the world.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <style>
+      :root {
+        --ink: #1a1a1a;
+        --paper: #ffffff;
+        --accent: #0a6e31;
+        --muted: #6b6b6b;
+        --rule: #e2e2e2;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root { --ink: #ececec; --paper: #121212; --accent: #4cc47e; --muted: #9a9a9a; --rule: #2c2c2c; }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family: Georgia, 'Times New Roman', serif;
+        line-height: 1.6;
+      }
+      header, main, footer { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+      header { border-bottom: 3px solid var(--accent); padding-top: 20px; padding-bottom: 12px; }
+      header a { color: var(--ink); text-decoration: none; }
+      .masthead { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.5px; }
+      .masthead span { color: var(--accent); }
+      main { padding-top: 24px; padding-bottom: 48px; }
+      footer { border-top: 1px solid var(--rule); padding: 16px; color: var(--muted); font-size: 0.85rem; }
+      a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="/" class="masthead">Pro<span>Pak</span> News</a>
+    </header>
+    <main><slot /></main>
+    <footer>© {new Date().getFullYear()} propaknews.com</footer>
+  </body>
+</html>

@@ -1,16 +1,16 @@
 # propaknews.com
 
-News site for a Pakistan-focused audience. WordPress on Ubuntu 24.04 + Nginx + PHP-FPM.
+Pakistan-focused news site. Astro SSR + Sanity CMS, served by Nginx on Ubuntu 24.04.
 
-## What lives where
+- Writers publish through the Sanity Studio admin panel; articles appear on the
+  site immediately (no rebuild needed).
+- `docs/DEPLOY.md` — server setup from scratch.
+- `docs/SANITY.md` — connecting the CMS.
+- `scripts/deploy.sh` — routine deploys on the VPS.
 
-| Thing | Location | Tracked in git? |
-|---|---|---|
-| Custom theme / plugins | `wp-content/` | Yes |
-| Nginx config | `deploy/nginx/` | Yes |
-| Deploy script | `scripts/` | Yes |
-| WordPress core | server only | No |
-| `wp-config.php`, secrets | server only | **No** |
-| Articles, media | MySQL + `wp-content/uploads/` | **No** — needs separate backup |
+## Local dev
 
-See `docs/DEPLOY.md` for server setup.
+    npm install
+    npm run dev
+
+Without `SANITY_PROJECT_ID` set, the site shows placeholder content.
