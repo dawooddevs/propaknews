@@ -9,12 +9,12 @@ const posts = db.prepare(
 const name = posts[0]?.category || (cat || '').replace(/-/g, ' ');
 ---
 <Base title={`${name} — ProPak News`}>
-  <h1 style="text-transform: capitalize;">{name}</h1>
+  <h1 class="pageTitle" style="text-transform: capitalize;">{name}</h1>
   {posts.length === 0 && <p>No articles in this category yet.</p>}
   {posts.map((p) => (
     <article style="border-bottom: 1px solid var(--rule); padding: 14px 0;">
-      <a href={`/news/${p.slug}/`} style="text-decoration: none;"><h3 style="margin: 0 0 4px;">{p.title}</h3></a>
-      <p class="meta" style="margin: 0;">{p.excerpt}</p>
+      <a href={`/news/${p.slug}/`} style="text-decoration: none;"><h3 style="margin: 0 0 4px; font-size: var(--fs-h5); line-height: var(--lh-h5);">{p.title}</h3></a>
+      <p style="margin: 0; color: var(--muted);">{p.excerpt}</p>
     </article>
   ))}
 </Base>

@@ -27,40 +27,84 @@ const ticker = getSetting('ticker', []);
     <Fragment set:html={seoHead} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Source+Sans+3:wght@400;600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400..700&display=swap" />
     <link rel="alternate" type="application/rss+xml" title={seo.siteTitle} href="/rss.xml" />
     <style is:global>
+      /*
+       * Typography follows reuters.com (Dec 2024 stylesheet).
+       * Reuters sets everything in its proprietary sans "Knowledge" at regular 400 /
+       * medium 500 / bold 700 — no serif anywhere. Knowledge is not licensable, so
+       * Open Sans stands in; swap the --sans stack if you ever license Knowledge.
+       * Sizes/line-heights are Reuters' exact pixel scale: mobile values here,
+       * tablet (≥768px) and desktop (≥1300px) overrides below.
+       */
       :root {
         --primary: #d64000; --secondary: #a00000;
         --ink: #1a1a1a; --paper: #ffffff; --muted: #666; --rule: #e4e4e4;
-        --serif: 'Source Serif 4', Georgia, serif;
-        --sans: 'Source Sans 3', -apple-system, 'Segoe UI', Arial, sans-serif;
+        --sans: 'Open Sans', 'Knowledge', -apple-system, 'Segoe UI', Arial, sans-serif;
+        --serif: var(--sans);
+        --fs-h1: 48px; --lh-h1: 54px;           /* Reuters heading_1 */
+        --fs-h2: 40px; --lh-h2: 48px;           /* heading_2 */
+        --fs-h3: 32px; --lh-h3: 40px;           /* heading_3 */
+        --fs-h4: 24px; --lh-h4: 32px;           /* heading_4 — lead story */
+        --fs-h5: 20px; --lh-h5: 28px;           /* heading_5 — featured cards */
+        --fs-h6: 16px; --lh-h6: 24px;           /* heading_6 — story headlines, section names */
+        --fs-article: 24px; --lh-article: 32px; /* heading_article — article page headline */
+        --fs-body: 16px; --lh-body: 24px;       /* body — article paragraphs */
+        --fs-default: 16px; --lh-default: 24px; /* default — UI text, nav */
+        --fs-large: 18px; --lh-large: 24px;     /* button_label */
+        --fs-small: 14px; --lh-small: 20px;     /* extra_small — dates, bylines, labels */
+        --fs-xs: 12px; --lh-xs: 16px;           /* ultra_small — card timestamps */
+      }
+      @media (min-width: 768px) {
+        :root { --fs-h1: 56px; --lh-h1: 63px; --fs-h4: 32px; --lh-h4: 40px; --fs-article: 32px; --lh-article: 40px; }
+      }
+      @media (min-width: 1024px) {
+        :root { --fs-article: 40px; --lh-article: 48px; }
+      }
+      @media (min-width: 1300px) {
+        :root { --fs-h1: 64px; --lh-h1: 72px; --fs-h2: 48px; --lh-h2: 54px; --fs-h3: 40px; --lh-h3: 48px;
+                --fs-h5: 24px; --lh-h5: 32px; --fs-h6: 18px; --lh-h6: 26px;
+                --fs-body: 18px; --lh-body: 28px; --fs-large: 20px; }
       }
       * { box-sizing: border-box; }
-      body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--serif); line-height: 1.6; }
+      body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); font-weight: 400;
+             font-size: var(--fs-default); line-height: var(--lh-default); -webkit-font-smoothing: antialiased; }
       a { color: inherit; }
+      h1, h2, h3, h4, h5, h6 { font-family: var(--sans); font-weight: 500; letter-spacing: 0; margin: 0 0 0.5em; }
+      h1 { font-size: var(--fs-h1); line-height: var(--lh-h1); }
+      h2 { font-size: var(--fs-h2); line-height: var(--lh-h2); }
+      h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); }
+      h4 { font-size: var(--fs-h4); line-height: var(--lh-h4); }
+      h5 { font-size: var(--fs-h5); line-height: var(--lh-h5); }
+      h6 { font-size: var(--fs-h6); line-height: var(--lh-h6); }
+      p { margin: 0 0 1em; }
+      .pageTitle { font-size: var(--fs-h2); line-height: var(--lh-h2); margin: 0 0 16px; }
+      .prose { font-size: var(--fs-body); line-height: var(--lh-body); }
+      .prose p, .prose li { font-size: var(--fs-body); line-height: var(--lh-body); }
+      .prose h2 { font-size: var(--fs-h4); line-height: var(--lh-h4); margin: 1.2em 0 0.4em; }
+      .prose h3 { font-size: var(--fs-h5); line-height: var(--lh-h5); margin: 1.2em 0 0.4em; }
       .wrap { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
       /* Reuters-style nav */
-      .topnav { border-bottom: 1px solid var(--rule); font-family: var(--sans); }
+      .topnav { border-bottom: 1px solid var(--rule); }
       .topnav .wrap { display: flex; align-items: center; gap: 28px; height: 64px; }
-      .brand { font-family: var(--sans); font-weight: 700; font-size: 1.5rem; text-decoration: none; letter-spacing: -0.4px; white-space: nowrap; }
+      .brand { font-weight: 700; font-size: 24px; line-height: 32px; text-decoration: none; letter-spacing: -0.4px; white-space: nowrap; }
       .brand .dot { color: var(--primary); }
       .brand em { font-style: normal; color: var(--secondary); }
       nav.mainmenu { display: flex; gap: 22px; overflow-x: auto; }
-      nav.mainmenu a { text-decoration: none; font-weight: 600; font-size: 0.95rem; padding: 20px 0; border-bottom: 3px solid transparent; white-space: nowrap; }
+      nav.mainmenu a { text-decoration: none; font-weight: 500; font-size: var(--fs-default); line-height: var(--lh-default); padding: 20px 0; border-bottom: 3px solid transparent; white-space: nowrap; }
       nav.mainmenu a:hover { border-bottom-color: var(--primary); color: var(--primary); }
       /* ticker */
-      .ticker { background: #101010; color: #fff; font-family: var(--sans); font-size: 0.85rem; overflow: hidden; }
+      .ticker { background: #101010; color: #fff; font-size: var(--fs-small); line-height: var(--lh-small); overflow: hidden; }
       .ticker .wrap { display: flex; gap: 28px; padding: 7px 16px; overflow-x: auto; scrollbar-width: none; }
       .ticker b { font-weight: 600; color: #bbb; }
       .ticker .up { color: #2ecc71; } .ticker .down { color: #ff5c5c; }
       main.wrap { padding-top: 24px; padding-bottom: 56px; }
-      footer { border-top: 2px solid var(--primary); font-family: var(--sans); }
-      footer .wrap { padding: 20px 16px; color: var(--muted); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
+      footer { border-top: 2px solid var(--primary); }
+      footer .wrap { padding: 20px 16px; color: var(--muted); font-size: var(--fs-small); line-height: var(--lh-small); display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
       footer a { text-decoration: none; margin-right: 14px; }
-      h1, h2, h3 { font-family: var(--serif); }
-      .kicker { font-family: var(--sans); text-transform: uppercase; letter-spacing: 1px; font-size: 0.72rem; color: var(--primary); font-weight: 700; }
-      .meta { font-family: var(--sans); color: var(--muted); font-size: 0.8rem; }
+      .kicker { display: inline-block; text-transform: uppercase; letter-spacing: 0; font-size: var(--fs-small); line-height: var(--lh-small); color: var(--primary); font-weight: 700; }
+      .meta { color: var(--muted); font-size: var(--fs-small); line-height: var(--lh-small); }
       img { max-width: 100%; height: auto; }
       @media (max-width: 720px) { .topnav .wrap { height: auto; flex-wrap: wrap; padding: 10px 16px; } nav.mainmenu a { padding: 10px 0; } }
     </style>
