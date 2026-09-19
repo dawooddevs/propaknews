@@ -1,5 +1,8 @@
 node_modules/
 dist/
+dist.new/
+dist.old/
+dist.failed/
 .astro/
 
 # Runtime data — lives on the server only

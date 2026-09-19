@@ -24,7 +24,18 @@ first (see CLAUDE.md).
 
     npm ci
     npm run build
-    chown -R www-data:www-data /var/www/propaknews
+
+The service runs as www-data, which only needs to WRITE the database and the
+uploaded images. Code stays root-owned (www-data reads it via normal
+world-readable permissions), and .env is read by systemd as root before it
+drops privileges, so www-data never needs access to it:
+
+    mkdir -p data uploads
+    chown -R www-data:www-data data uploads
+    chmod 600 .env
+
+Do NOT `chown -R` the whole directory: that hands .git to www-data, and git
+then refuses to run as root on the next deploy ("dubious ownership").
 
 ## 4. Run as a service
 

@@ -22,7 +22,8 @@ push when finished.**
 - Homepage hero + 2×2 grid order = settings key `featured_order` (drag-drop in /admin/homepage). Latest News is ordered by published_at.
 - astro.config.mjs security.allowedDomains must list every domain the site serves — a missing host breaks POST/upload requests with 403.
 - Nginx config + systemd unit tracked in deploy/, symlinked into /etc. `nginx -t` before reload.
-- Deploys: scripts/deploy.sh (pull → npm ci → build → restart). Content changes need no deploy.
+- Deploys: scripts/deploy.sh (pull → npm ci → build to dist.new → swap into dist/ → restart → health check, rolling back to dist.old if the site does not answer). Content changes need no deploy.
+- Ownership: only data/ and uploads/ are chowned to www-data. Never `chown -R` the whole web root — it hands .git to www-data and git then refuses to run as root ("dubious ownership"). dist/ is a hardcoded path in both the nginx config and the systemd unit, so a build must always end up at dist/.
 
 ## Server-side notes
 - The Claude Code install on this VPS starts with an empty $PATH. Export PATH first if commands are "not found".
