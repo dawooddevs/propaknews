@@ -61,6 +61,19 @@
     ta.value = ta.value.slice(0, pos) + tag + ta.value.slice(pos);
   });
 
+  // ---- excerpt word counter ----
+  const exEl = $('f_excerpt'), exCount = $('excerptCount');
+  function countExcerpt() {
+    const n = exEl.value.trim() ? exEl.value.trim().split(/\s+/).length : 0;
+    const ok = n >= 15 && n <= 20;
+    exCount.textContent = n === 0
+      ? 'Empty — the first 20 words of the body will be used instead.'
+      : `${n} words${ok ? ' ✓' : n < 15 ? ' — a little short (aim for 15–20)' : ' — a little long (aim for 15–20)'}`;
+    exCount.style.color = n === 0 ? '#666' : ok ? '#16a34a' : '#a16207';
+  }
+  exEl.addEventListener('input', countExcerpt);
+  countExcerpt();
+
   // ---- save ----
   $('saveBtn').onclick = async () => {
     const body = {

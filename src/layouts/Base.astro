@@ -56,7 +56,7 @@ const ticker = getSetting('ticker', []);
         --fs-sechead: 20px; --lh-sechead: 24px; /* section + widget headings, uppercase */
         --fs-article: 44.8px; --lh-article: 51px; /* article page h1: Inter 700 2.8rem */
         --fs-body: 17.6px; --lh-body: 30px;     /* Merriweather article paragraphs (lh 1.7) */
-        --fs-byline: 18px; --lh-byline: 26px;   /* article byline (.single .entry-meta) */
+        --fs-standfirst: 16px; --lh-standfirst: 24px; /* article standfirst (.story-excerpt) */
         --fs-default: 16px; --lh-default: 24px; /* base UI text */
         --fs-large: 17px; --lh-large: 24px;     /* buttons */
         --fs-small: 14px; --lh-small: 20px;     /* secondary UI text, ticker, footer */
@@ -66,7 +66,7 @@ const ticker = getSetting('ticker', []);
       }
       @media (max-width: 768px) {
         :root { --fs-h1: 32px; --lh-h1: 38px; --fs-article: 32px; --lh-article: 38px;
-                --fs-byline: 15px; --lh-byline: 22px; --fs-share: 20px; --fs-nav: 15px; }
+                --fs-standfirst: 15px; --lh-standfirst: 22px; --fs-share: 20px; --fs-nav: 15px; }
       }
       * { box-sizing: border-box; }
       body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); font-weight: 400;

@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getPostBySlug, publishedPosts, getSetting } from '../../lib/db';
+import { excerptFor, readingTime } from '../../lib/text';
 
 const { slug } = Astro.params;
 const post = slug ? getPostBySlug(slug) : null;
@@ -38,8 +39,9 @@ ${ogImage ? `<meta name="twitter:image" content="${new URL(ogImage, Astro.site).
 })}</script>`;
 const asDate = (d: string) => new Date(d.replace(' ', 'T') + 'Z');
 const fmtDate = (d: string) => asDate(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-const fmtTime = (d: string) => asDate(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 const author = s.author || 'News Desk';
+const standfirst = excerptFor(post);
+const readTime = readingTime(post.body);
 const shareUrl = encodeURIComponent(canonicalUrl);
 const shareText = encodeURIComponent(post.title);
 const shares = [
@@ -59,11 +61,18 @@ const shares = [
     .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 40px; }
     article h1 { font-size: var(--fs-article); line-height: var(--lh-article); font-weight: 700; color: #000; margin: 8px 0 12px; }
 
-    /* Byline row: author | published date | time, with share icons on the right */
-    .entryMeta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
-      color: #000; font-size: var(--fs-byline); line-height: var(--lh-byline); font-weight: 400; margin: 15px 0 20px; }
-    .entryMeta .by a, .entryMeta .by b { color: var(--primary); font-weight: 600; }
-    .entryMeta .sep { color: #c7c7c7; margin: 0 8px; }
+    /* Header follows tribune.com.pk .storypage: headline, standfirst, rule,
+       then an author row divided by 1px #dedede borders with share icons right. */
+    .storyExcerpt { font-family: var(--serif); font-size: var(--fs-standfirst); line-height: var(--lh-standfirst);
+      font-weight: 400; color: #464444; margin: 10px 0; text-align: left; }
+    .headRule { border: 0; border-top: 1px solid #dedede; margin: 14px 0 10px; }
+    .storyHead { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+      padding-bottom: 5px; border-bottom: 1px solid #dedede; margin-bottom: 20px; }
+    .authorBox { display: flex; align-items: center; flex-wrap: wrap; }
+    .authorBox span { padding: 0 10px; color: #666; font-size: var(--fs-xs); line-height: var(--lh-xs); }
+    .authorBox span:first-child { padding-left: 0; color: #000; font-weight: 500; }
+    /* dividers between author / date / reading time, as in the template */
+    .authorBox span + span { border-left: 1px solid #dedede; }
     .shareList { display: flex; align-items: center; gap: 14px; list-style: none; margin: 0; padding: 0; }
     .shareList a { display: inline-flex; color: #6c707c; transition: color 0.15s; }
     .shareList svg { width: var(--fs-share); height: var(--fs-share); fill: currentColor; display: block; }
@@ -109,11 +118,14 @@ const shares = [
       <span class="kicker">{post.category}</span>
       <h1>{post.title}</h1>
 
-      <div class="entryMeta">
-        <div class="by">
-          By <b>{author}</b>
-          <span class="sep">|</span>Published {fmtDate(post.published_at)}
-          <span class="sep">|</span>{fmtTime(post.published_at)}
+      {standfirst && <p class="storyExcerpt">{standfirst}</p>}
+      <hr class="headRule" />
+
+      <div class="storyHead">
+        <div class="authorBox">
+          <span>{author}</span>
+          <span>{fmtDate(post.published_at)}</span>
+          <span>{readTime}</span>
         </div>
         <ul class="shareList">
           {shares.map((sh) => (

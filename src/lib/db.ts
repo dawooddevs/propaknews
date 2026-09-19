@@ -101,23 +101,23 @@ function seed() {
 
   const cats = ['Business', 'Tech and Telecom', 'Education', 'Sports', 'General'];
   const seedPosts = [
-    ['Govt Announces New Petrol Prices for the Fortnight', 'Fuel prices revised as global oil markets shift; here is what you will pay at the pump.'],
-    ['State Bank Holds Policy Rate Steady', 'The central bank keeps the benchmark rate unchanged, citing easing inflation.'],
-    ['Pakistan Freelancers Cross New Export Milestone', 'IT remittances continue their climb as freelancing grows across the country.'],
-    ['New Motorway Section Opens to Traffic', 'The long-awaited section cuts travel time between major cities by two hours.'],
-    ['Smartphone Assembly Hits Record Output', 'Local assembly plants report their highest quarterly output to date.'],
-    ['HEC Announces Scholarship Programme for 2026', 'Applications open next month for undergraduate and graduate scholarships.'],
-    ['National Team Squad Announced for Upcoming Series', 'Selectors name a mix of experience and young talent for the tour.'],
-    ['Solar Imports Surge as Households Go Off-Grid', 'Rooftop solar adoption accelerates amid high electricity tariffs.'],
-    ['Karachi Green Line Adds New Routes', 'The BRT network expands with feeder routes serving three more districts.'],
-    ['Government Unveils Digital ID Upgrade', 'NADRA rolls out an upgraded digital identity app with new services.'],
+    ['Govt Announces New Petrol Prices for the Fortnight', 'Fuel prices have been revised as global oil markets shift again, and here is what motorists now pay.'],
+    ['State Bank Holds Policy Rate Steady', 'The central bank kept its benchmark rate unchanged for a third meeting, citing easing inflation and a steadier rupee.'],
+    ['Pakistan Freelancers Cross New Export Milestone', 'IT remittances continued their steady climb this quarter as freelancing expands well beyond the major cities into smaller towns.'],
+    ['New Motorway Section Opens to Traffic', 'The long-awaited section opened this week and cuts travel time between the two major cities by roughly two hours.'],
+    ['Smartphone Assembly Hits Record Output', 'Local assembly plants have reported their highest quarterly output to date, easing import pressure and creating several thousand new jobs.'],
+    ['HEC Announces Scholarship Programme for 2026', 'Applications open next month for undergraduate and graduate scholarships, with places reserved for students from underrepresented districts across the country.'],
+    ['National Team Squad Announced for Upcoming Series', 'Selectors have named a squad mixing experienced campaigners with several uncapped young players ahead of next month tour.'],
+    ['Solar Imports Surge as Households Go Off-Grid', 'Rooftop solar adoption is accelerating sharply as households respond to high electricity tariffs and increasingly unreliable grid supply.'],
+    ['Karachi Green Line Adds New Routes', 'The bus rapid transit network is expanding again, with feeder routes now serving three additional districts across the city.'],
+    ['Government Unveils Digital ID Upgrade', 'NADRA has rolled out an upgraded digital identity app that brings several government services onto phones for the first time.'],
   ];
   const ins = db.prepare(
     `INSERT INTO posts (type, title, slug, excerpt, body, category, status, featured_image, published_at, seo)
      VALUES ('post', ?, ?, ?, ?, ?, 'published', ?, datetime('now', ?), ?)`,
   );
   seedPosts.forEach(([title, excerpt], i) => {
-    const body = `<p><strong>ISLAMABAD</strong> — ${excerpt}</p><p>This is placeholder article text so you can see the layout. Replace it from the admin panel at <code>/admin</code>. It demonstrates paragraphs, <a href="/">links</a> and general typography of the article page.</p><h2>Background</h2><p>More placeholder copy. Each dummy post has a different publish time so the Latest News ordering is visible.</p>`;
+    const body = `<p><strong>ISLAMABAD</strong> — Placeholder opening paragraph for this dummy article. The standfirst above is the post's excerpt, so the body deliberately does not repeat it.</p><p>This is placeholder article text so you can see the layout. Replace it from the admin panel at <code>/admin</code>. It demonstrates paragraphs, <a href="/">links</a> and general typography of the article page.</p><h2>Background</h2><p>More placeholder copy. Each dummy post has a different publish time so the Latest News ordering is visible, and enough words here to make the reading-time estimate meaningful.</p>`;
     ins.run(title, slugify(title), excerpt, body, cats[i % cats.length],
       `/uploads/seed-${(i % 5) + 1}.webp`, `-${i * 3 + 1} hours`,
       JSON.stringify({ keywords: ['pakistan news', 'propak news'] }));

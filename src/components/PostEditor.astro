@@ -15,8 +15,9 @@ const dtLocal = post ? post.published_at.replace(' ', 'T').slice(0, 16) : '';
       <input type="text" id="f_title" value={post?.title || ''} placeholder="Post title" />
       <label>Slug (URL)</label>
       <input type="text" id="f_slug" value={post?.slug || ''} placeholder="auto-generated-from-title" />
-      <label>Excerpt</label>
+      <label>Excerpt <small>(the standfirst under the headline — aim for 15–20 words)</small></label>
       <textarea id="f_excerpt" rows="2">{post?.excerpt || ''}</textarea>
+      <div id="excerptCount" class="meta" style="font-size:0.8rem;margin-top:4px;color:#666;"></div>
       <label>Body (HTML allowed)</label>
       <div style="margin-bottom:6px;">
         <button class="btn sm gray" id="insertImg" type="button">🖼 Insert image from Media</button>
