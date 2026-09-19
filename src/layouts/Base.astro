@@ -51,19 +51,22 @@ const ticker = getSetting('ticker', []);
         --fs-h2: 32px; --lh-h2: 40px;
         --fs-h3: 24px; --lh-h3: 30px;
         --fs-h4: 22px; --lh-h4: 28px;           /* hero card headline */
-        --fs-h5: 16px; --lh-h5: 21px;           /* featured card headline */
-        --fs-h6: 16px; --lh-h6: 21px;           /* story card headline */
-        --fs-sechead: 20px; --lh-sechead: 24px; /* section headings, uppercase */
+        --fs-h5: 18px; --lh-h5: 24px;           /* featured card headline */
+        --fs-h6: 16px; --lh-h6: 22px;           /* story card / sidebar headline (news_list h6) */
+        --fs-sechead: 20px; --lh-sechead: 24px; /* section + widget headings, uppercase */
         --fs-article: 44.8px; --lh-article: 51px; /* article page h1: Inter 700 2.8rem */
         --fs-body: 17.6px; --lh-body: 30px;     /* Merriweather article paragraphs (lh 1.7) */
-        --fs-default: 14px; --lh-default: 20px; /* base UI (Tribune body: Inter 14px) */
-        --fs-large: 14px; --lh-large: 20px;
-        --fs-small: 12px; --lh-small: 18px;     /* excerpt-ish UI text */
-        --fs-xs: 11px; --lh-xs: 15px;           /* dates, bylines (.6875rem) */
-        --fs-nav: 11px; --lh-nav: 20px;         /* main menu */
+        --fs-byline: 18px; --lh-byline: 26px;   /* article byline (.single .entry-meta) */
+        --fs-default: 16px; --lh-default: 24px; /* base UI text */
+        --fs-large: 17px; --lh-large: 24px;     /* buttons */
+        --fs-small: 14px; --lh-small: 20px;     /* secondary UI text, ticker, footer */
+        --fs-xs: 14px; --lh-xs: 20px;           /* dates, bylines on cards — never below 14px */
+        --fs-nav: 16px; --lh-nav: 22px;         /* main menu */
+        --fs-share: 25px;                       /* share icon size (.ps-slist li) */
       }
       @media (max-width: 768px) {
-        :root { --fs-h1: 32px; --lh-h1: 38px; --fs-article: 32px; --lh-article: 38px; }
+        :root { --fs-h1: 32px; --lh-h1: 38px; --fs-article: 32px; --lh-article: 38px;
+                --fs-byline: 15px; --lh-byline: 22px; --fs-share: 20px; --fs-nav: 15px; }
       }
       * { box-sizing: border-box; }
       body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); font-weight: 400;
@@ -90,7 +93,7 @@ const ticker = getSetting('ticker', []);
       .brand .dot { color: var(--primary); }
       .brand em { font-style: normal; color: var(--secondary); }
       nav.mainmenu { display: flex; gap: 22px; overflow-x: auto; }
-      nav.mainmenu a { text-decoration: none; font-weight: 500; font-size: var(--fs-nav); line-height: var(--lh-nav); text-transform: uppercase; color: #666; padding: 22px 0; border-bottom: 3px solid transparent; white-space: nowrap; }
+      nav.mainmenu a { text-decoration: none; font-weight: 600; font-size: var(--fs-nav); line-height: var(--lh-nav); text-transform: uppercase; color: #333; padding: 20px 0; border-bottom: 3px solid transparent; white-space: nowrap; }
       nav.mainmenu a:hover { border-bottom-color: var(--primary); color: var(--primary); }
       /* ticker */
       .ticker { background: #101010; color: #fff; font-size: var(--fs-small); line-height: var(--lh-small); font-weight: 500; overflow: hidden; }
@@ -101,8 +104,8 @@ const ticker = getSetting('ticker', []);
       footer { border-top: 2px solid var(--primary); }
       footer .wrap { padding: 20px 16px; color: var(--muted); font-size: var(--fs-small); line-height: var(--lh-small); display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
       footer a { text-decoration: none; margin-right: 14px; }
-      .kicker { display: inline-block; text-transform: uppercase; letter-spacing: 0; font-size: var(--fs-small); line-height: var(--lh-small); color: var(--primary); font-weight: 700; }
-      .meta { color: #777; font-size: var(--fs-xs); line-height: var(--lh-xs); }
+      .kicker { display: inline-block; text-transform: uppercase; letter-spacing: 0.3px; font-size: var(--fs-small); line-height: var(--lh-small); color: var(--primary); font-weight: 700; }
+      .meta { color: #6c707c; font-size: var(--fs-xs); line-height: var(--lh-xs); }
       img { max-width: 100%; height: auto; }
       @media (max-width: 720px) { .topnav .wrap { height: auto; flex-wrap: wrap; padding: 10px 16px; } nav.mainmenu a { padding: 10px 0; } }
     </style>

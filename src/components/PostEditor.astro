@@ -26,6 +26,8 @@ const dtLocal = post ? post.published_at.replace(' ', 'T').slice(0, 16) : '';
 
     <div class="card">
       <h3 style="margin-top:0;">SEO</h3>
+      <label>Author (byline shown on the article)</label>
+      <input type="text" id="s_author" value={seo.author || ''} placeholder="News Desk" />
       <label>Meta title <small>(empty = post title)</small></label>
       <input type="text" id="s_metaTitle" value={seo.metaTitle || ''} />
       <label>Meta description <small>(empty = excerpt)</small></label>

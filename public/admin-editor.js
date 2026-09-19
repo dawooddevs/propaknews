@@ -72,6 +72,7 @@
       featured_image: $('f_featured_image').value,
       published_at: $('f_published_at').value,
       seo: {
+        author: $('s_author').value,
         metaTitle: $('s_metaTitle').value, metaDesc: $('s_metaDesc').value,
         canonical: $('s_canonical').value, noindex: $('s_noindex').checked,
         keywords,

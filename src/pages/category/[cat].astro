@@ -14,7 +14,7 @@ const name = posts[0]?.category || (cat || '').replace(/-/g, ' ');
   {posts.map((p) => (
     <article style="border-bottom: 1px solid var(--rule); padding: 14px 0;">
       <a href={`/news/${p.slug}/`} style="text-decoration: none;"><h3 style="margin: 0 0 4px; font-size: var(--fs-h5); line-height: var(--lh-h5);">{p.title}</h3></a>
-      <p style="margin: 0; font-family: var(--serif); font-size: 14px; line-height: 21px; color: #464444;">{p.excerpt}</p>
+      <p style="margin: 0; font-family: var(--serif); font-size: var(--fs-default); line-height: 24px; color: #464444;">{p.excerpt}</p>
     </article>
   ))}
 </Base>

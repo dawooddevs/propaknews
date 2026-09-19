@@ -159,18 +159,22 @@ function seed() {
 seed();
 
 // Generate placeholder featured images for seed posts if missing.
+// Written to a temp file then renamed, so a concurrent import or an
+// interrupted start can never leave a half-written (0-byte) image behind.
 (async () => {
   try {
     const { default: sharp } = await import('sharp');
     const colors = ['#d64000', '#a00000', '#0a5c36', '#1d3557', '#6d3b00'];
     for (let i = 1; i <= 5; i++) {
       const f = path.join(UPLOADS_DIR, `seed-${i}.webp`);
-      if (fs.existsSync(f)) continue;
+      if (fs.existsSync(f) && fs.statSync(f).size > 0) continue;
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675">
         <rect width="1200" height="675" fill="${colors[i - 1]}"/>
         <text x="600" y="360" font-family="Arial" font-size="72" font-weight="bold" fill="rgba(255,255,255,0.85)" text-anchor="middle">ProPak News</text>
       </svg>`;
-      await sharp(Buffer.from(svg)).webp({ quality: 75 }).toFile(f);
+      const tmp = `${f}.${process.pid}.tmp`;
+      await sharp(Buffer.from(svg)).webp({ quality: 75 }).toFile(tmp);
+      fs.renameSync(tmp, f);
     }
   } catch { /* placeholders are cosmetic */ }
 })();
