@@ -1,22 +1,134 @@
 ---
 import Admin from '../../layouts/Admin.astro';
-import { db } from '../../lib/db';
+import { db, getSetting } from '../../lib/db';
 const c = (sql: string) => (db.prepare(sql).get() as any).c;
 const stats = {
   published: c("SELECT COUNT(*) c FROM posts WHERE type='post' AND status='published'"),
   draft: c("SELECT COUNT(*) c FROM posts WHERE type='post' AND status='draft'"),
   pages: c("SELECT COUNT(*) c FROM posts WHERE type='page' AND status!='trash'"),
   media: c('SELECT COUNT(*) c FROM media'),
+  week: c("SELECT COUNT(*) c FROM posts WHERE type='post' AND status='published' AND published_at >= datetime('now','-7 days')"),
 };
+const recent = db.prepare(
+  "SELECT id, type, title, status, updated_at, featured_image, category FROM posts WHERE status != 'trash' ORDER BY updated_at DESC LIMIT 8").all() as any[];
+const drafts = db.prepare(
+  "SELECT id, title, updated_at FROM posts WHERE type='post' AND status='draft' ORDER BY updated_at DESC LIMIT 5").all() as any[];
+const byCat = db.prepare(
+  "SELECT category, COUNT(*) n FROM posts WHERE type='post' AND status='published' GROUP BY category ORDER BY n DESC").all() as any[];
+const maxCat = Math.max(1, ...byCat.map((r) => r.n));
+// published posts per day, last 14 days
+const days = db.prepare(
+  `SELECT date(published_at) d, COUNT(*) n FROM posts WHERE type='post' AND status='published'
+   AND published_at >= date('now','-13 days') GROUP BY d`).all() as any[];
+const dayMap = new Map(days.map((r) => [r.d, r.n]));
+const series = Array.from({ length: 14 }, (_, i) => {
+  const d = new Date(Date.now() - (13 - i) * 86400000).toISOString().slice(0, 10);
+  return { d, n: dayMap.get(d) || 0 };
+});
+const maxDay = Math.max(1, ...series.map((s) => s.n));
+const brand = getSetting('branding', {});
+const hour = new Date().getUTCHours() + 5; // Pakistan time
+const greet = hour % 24 < 12 ? 'Good morning' : hour % 24 < 17 ? 'Good afternoon' : 'Good evening';
+const ago = (t: string) => {
+  const s = (Date.now() - new Date(t.replace(' ', 'T') + 'Z').getTime()) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+  return `${Math.floor(s / 86400)} d ago`;
+};
+const editUrl = (p: any) => `/admin/${p.type === 'page' ? 'pages' : 'posts'}/edit/?id=${p.id}`;
 ---
-<Admin title="Dashboard" active="dashboard">
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
-    {Object.entries({ 'Published posts': stats.published, Drafts: stats.draft, Pages: stats.pages, 'Media files': stats.media })
-      .map(([k, v]) => <div class="card" style="text-align:center;"><div style="font-size:2rem;font-weight:700;color:var(--primary)">{v}</div>{k}</div>)}
+<Admin title={`${greet}, Dawood`} subtitle="Here is what is happening on your site" active="dashboard">
+  <div class="stats">
+    {[
+      ['Published posts', stats.published, `${stats.week} this week`, '/admin/posts/'],
+      ['Drafts', stats.draft, 'waiting to publish', '/admin/posts/'],
+      ['Pages', stats.pages, 'about, contact, policies…', '/admin/pages/'],
+      ['Media files', stats.media, 'all served as webp', '/admin/media/'],
+    ].map(([k, v, sub, href]) => (
+      <a class="card stat" href={href as string}><span class="meta">{k}</span><b>{v}</b><span class="meta">{sub}</span></a>
+    ))}
   </div>
-  <div class="card">
-    <a class="btn" href="/admin/posts/edit/">+ New Post</a>
-    <a class="btn gray" href="/admin/pages/edit/">+ New Page</a>
-    <button class="btn red" onclick="api('/api/admin/settings',{action:'clear-cache'}).then(()=>toast('Cache cleared'))">Clear Cache</button>
+
+  <div class="dash">
+    <div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between;"><h3 style="margin:0;">Publishing, last 14 days</h3><span class="meta">{series.reduce((a, s) => a + s.n, 0)} posts</span></div>
+        <div class="bars">
+          {series.map((s) => <div class="bar" title={`${s.d}: ${s.n} post${s.n === 1 ? '' : 's'}`}><i style={`height:${(s.n / maxDay) * 100}%`}></i><span>{s.d.slice(8)}</span></div>)}
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="row" style="justify-content:space-between;padding:16px 20px 8px;"><h3 style="margin:0;">Recent activity</h3><a href="/admin/posts/" class="meta">All posts →</a></div>
+        <ul class="list">
+          {recent.map((p) => (
+            <li><a href={editUrl(p)}>
+              {p.featured_image ? <img src={p.featured_image} alt="" loading="lazy" /> : <span class="ph">{p.type === 'page' ? '▤' : '✎'}</span>}
+              <span class="t"><b>{p.title || '(no title)'}</b><span class="meta">{p.type === 'page' ? 'Page' : p.category} · edited {ago(p.updated_at)}</span></span>
+              <span class={`pill ${p.status}`}>{p.status}</span>
+            </a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Quick actions</h3>
+        <div class="qa">
+          <a class="btn" href="/admin/posts/edit/">✎ Write a post</a>
+          <a class="btn gray" href="/admin/pages/edit/">▤ New page</a>
+          <a class="btn gray" href="/admin/media/">⬆ Upload media</a>
+          <a class="btn gray" href="/admin/homepage/">★ Arrange homepage</a>
+          <button class="btn gray" onclick="api('/api/admin/settings',{action:'clear-cache'}).then(()=>toast('Cache cleared'))">⟲ Clear cache</button>
+        </div>
+      </div>
+
+      {drafts.length > 0 && (
+        <div class="card">
+          <h3>Continue writing</h3>
+          {drafts.map((d) => <a class="draft" href={`/admin/posts/edit/?id=${d.id}`}><b>{d.title || '(no title)'}</b><span class="meta">{ago(d.updated_at)}</span></a>)}
+        </div>
+      )}
+
+      <div class="card">
+        <h3>Posts by category</h3>
+        {byCat.map((r) => (
+          <div class="cat"><div class="row" style="justify-content:space-between;"><span>{r.category}</span><b>{r.n}</b></div>
+            <div class="track"><i style={`width:${(r.n / maxCat) * 100}%`}></i></div></div>
+        ))}
+      </div>
+
+      {(!brand.logo || !brand.favicon) && (
+        <a class="card tip" href="/admin/branding/"><b>Finish setting up your brand</b><span class="meta">{!brand.logo && !brand.favicon ? 'Add a logo and favicon' : !brand.logo ? 'Add a logo' : 'Add a favicon'} →</span></a>
+      )}
+    </div>
   </div>
+
+  <style>
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .stat { display: grid; gap: 4px; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+    .stat:hover { border-color: var(--primary); transform: translateY(-1px); }
+    .stat b { font-size: 30px; letter-spacing: -.02em; color: var(--ink); }
+    .dash { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+    .card h3 { margin: 0 0 12px; font-size: 15px; }
+    .bars { display: flex; align-items: flex-end; gap: 6px; height: 150px; margin-top: 16px; }
+    .bar { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+    .bar i { width: 100%; min-height: 3px; background: linear-gradient(var(--primary), color-mix(in srgb, var(--primary) 65%, #fff)); border-radius: 5px 5px 2px 2px; }
+    .bar span { font-size: 11px; color: var(--muted); }
+    .list { list-style: none; margin: 0; padding: 0 8px 8px; }
+    .list a { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: inherit; }
+    .list a:hover { background: var(--hover); }
+    .list img, .list .ph { width: 52px; height: 36px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--hover); display: grid; place-items: center; color: var(--muted); }
+    .list .t { flex: 1; min-width: 0; display: grid; }
+    .list .t b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+    .qa { display: grid; gap: 8px; } .qa .btn { justify-content: flex-start; }
+    .draft { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); text-decoration: none; color: inherit; }
+    .draft:last-child { border: 0; } .draft b { font-weight: 500; } .draft:hover b { color: var(--primary); }
+    .cat { margin-bottom: 10px; } .track { height: 6px; background: var(--hover); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+    .track i { display: block; height: 100%; background: var(--primary); border-radius: 3px; }
+    .tip { display: grid; gap: 4px; text-decoration: none; color: inherit; border-color: color-mix(in srgb, var(--primary) 40%, transparent); background: var(--primary-soft); }
+    @media (max-width: 1000px) { .dash { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, 1fr); } }
+  </style>
 </Admin>

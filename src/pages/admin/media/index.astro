@@ -2,12 +2,12 @@
 import Admin from '../../../layouts/Admin.astro';
 ---
 <Admin title="Media Library" active="media">
-  <div class="card" id="drop" style="border:2px dashed #b9bec6;text-align:center;padding:40px;cursor:pointer;">
+  <div class="card" id="drop" style="border:2px dashed var(--field-rule);text-align:center;padding:40px;cursor:pointer;">
     <b>Drag & drop images here</b> or click to choose files<br/>
     <span class="meta">Everything is converted to webp automatically (max width 1600px, quality 80).</span>
     <input type="file" id="file" multiple accept="image/*" style="display:none;" />
   </div>
-  <div id="grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;"></div>
+  <div id="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;"></div>
   <script is:inline>
     const grid = document.getElementById('grid'), drop = document.getElementById('drop'), file = document.getElementById('file');
     let offset = 0, done = false, busy = false;
@@ -44,8 +44,8 @@ import Admin from '../../../layouts/Admin.astro';
     drop.onclick = () => file.click();
     file.onchange = () => { upload(file.files); file.value = ''; };
     drop.ondragover = (e) => { e.preventDefault(); drop.style.borderColor = '#d64000'; };
-    drop.ondragleave = () => drop.style.borderColor = '#b9bec6';
-    drop.ondrop = (e) => { e.preventDefault(); drop.style.borderColor = '#b9bec6'; upload(e.dataTransfer.files); };
+    drop.ondragleave = () => drop.style.borderColor = '';
+    drop.ondrop = (e) => { e.preventDefault(); drop.style.borderColor = ''; upload(e.dataTransfer.files); };
     window.addEventListener('scroll', () => { if (window.innerHeight + window.scrollY > document.body.offsetHeight - 400) load(false); });
     load(true);
   </script>

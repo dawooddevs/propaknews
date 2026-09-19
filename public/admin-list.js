@@ -17,7 +17,11 @@
            <button class="btn sm red" data-act="delete" data-id="${p.id}">Delete forever</button>`
         : `<a class="btn sm" href="${editBase}?id=${p.id}">Edit</a>
            <button class="btn sm red" data-act="trash" data-id="${p.id}">Trash</button>`;
-      tr.innerHTML = `<td>${p.id}</td><td><a href="${editBase}?id=${p.id}">${p.title || '(no title)'}</a></td>
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const thumb = p.featured_image
+        ? `<img src="${esc(p.featured_image)}" alt="" loading="lazy" style="width:56px;height:38px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:12px;">`
+        : '';
+      tr.innerHTML = `<td class="meta">${p.id}</td><td><a href="${editBase}?id=${p.id}" style="display:flex;align-items:center;">${thumb}<span>${esc(p.title || '(no title)')}</span></a></td>
         <td>${p.category}</td><td><span class="pill ${p.status}">${p.status}</span></td>
         <td>${p.published_at}</td><td style="white-space:nowrap">${actions}</td>`;
       rows.appendChild(tr);

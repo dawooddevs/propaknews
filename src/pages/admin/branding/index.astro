@@ -1,0 +1,115 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { getSetting } from '../../../lib/db';
+const brand = getSetting('branding', {});
+const seo = getSetting('seo', {});
+const siteName = seo.siteTitle || 'ProPak News';
+---
+<Admin title="Logo & favicon" active="branding" subtitle="How your site looks in the header, browser tabs and on phones' home screens">
+  <div class="grid2" style="gap:18px;align-items:start;">
+    <div class="card">
+      <h3>Site logo</h3>
+      <p class="meta" style="margin-top:0;">Shown in the site header and the admin sidebar. A transparent PNG or SVG works best; it is converted to webp.</p>
+      <div class="bz" data-kind="logo">
+        {brand.logo
+          ? <img src={brand.logo} alt="Current logo" class="bz-logo" />
+          : <div class="bz-empty"><b>Drop your logo here</b><span class="meta">or click to choose · PNG, SVG, JPG, WebP · max 8 MB</span></div>}
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif" hidden />
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn sm gray" data-pick="logo">{brand.logo ? 'Replace logo' : 'Upload logo'}</button>
+        {brand.logo && <button class="btn sm red" data-remove="logo">Remove</button>}
+      </div>
+      <hr />
+      <label>Logo height in header: <b id="hVal">{brand.logoHeight || 40}px</b></label>
+      <input type="range" id="logoHeight" min="20" max="120" value={brand.logoHeight || 40} style="width:100%;accent-color:var(--primary);" />
+      <label><input type="checkbox" id="showTitle" checked={!!brand.showTitleWithLogo} /> Also show the site name next to the logo</label>
+      <button class="btn" id="saveOpts" style="margin-top:12px;">Save display options</button>
+    </div>
+
+    <div class="card">
+      <h3>Favicon</h3>
+      <p class="meta" style="margin-top:0;">The small icon in browser tabs, bookmarks and Google results. Upload a square image, at least 512×512. Sizes 32, 180 and 512 px are generated for you.</p>
+      <div class="bz" data-kind="favicon">
+        {brand.favicon512
+          ? <img src={brand.favicon512} alt="Current favicon" class="bz-fav" />
+          : <div class="bz-empty"><b>Drop your icon here</b><span class="meta">or click to choose · square PNG or SVG recommended</span></div>}
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn sm gray" data-pick="favicon">{brand.favicon ? 'Replace favicon' : 'Upload favicon'}</button>
+        {brand.favicon && <button class="btn sm red" data-remove="favicon">Remove</button>}
+      </div>
+      <hr />
+      <label>Preview</label>
+      <div class="tabprev">
+        <div class="tabprev-tab">
+          {brand.favicon ? <img src={brand.favicon} width="16" height="16" alt="" /> : <span class="tabprev-dot"></span>}
+          <span>{siteName}</span><span class="meta">✕</span>
+        </div>
+        <div class="tabprev-bar"><span class="meta">🔒 propaknews.com</span></div>
+      </div>
+      {brand.favicon180 && <div class="row" style="margin-top:14px;"><img src={brand.favicon180} width="60" height="60" style="border-radius:14px;box-shadow:var(--shadow);" alt="" /><span class="meta">Home-screen icon on iPhone / Android</span></div>}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Header preview</h3>
+    <div class="hprev" id="hprev">
+      {brand.logo
+        ? <><img src={brand.logo} alt="" id="hprevImg" style={`height:${brand.logoHeight || 40}px;`} /><span id="hprevTitle" style={brand.showTitleWithLogo ? '' : 'display:none;'}>{siteName}</span></>
+        : <span class="hprev-text">Pro<em>Pak</em><i>.</i>News</span>}
+    </div>
+    {!brand.logo && <p class="meta" style="margin-bottom:0;">No logo yet, so the header uses the text logo shown above.</p>}
+  </div>
+
+  <style>
+    .bz { border: 2px dashed var(--field-rule); border-radius: 12px; min-height: 170px; display: grid; place-items: center; cursor: pointer; padding: 18px;
+      background: repeating-conic-gradient(var(--hover) 0% 25%, transparent 0% 50%) 50% / 18px 18px; transition: border-color .15s; }
+    .bz:hover, .bz.over { border-color: var(--primary); }
+    .bz-empty { display: grid; gap: 4px; text-align: center; background: var(--card); padding: 12px 16px; border-radius: 8px; }
+    .bz-logo { max-width: 100%; max-height: 120px; }
+    .bz-fav { width: 120px; height: 120px; border-radius: 16px; }
+    .tabprev { border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--hover); }
+    .tabprev-tab { display: inline-flex; align-items: center; gap: 8px; background: var(--card); padding: 8px 14px; margin: 8px 0 0 8px; border-radius: 8px 8px 0 0; font-size: 12.5px; min-width: 200px; }
+    .tabprev-tab span:nth-child(2) { flex: 1; }
+    .tabprev-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--rule); }
+    .tabprev-bar { background: var(--card); padding: 8px 14px; font-size: 12px; border-top: 1px solid var(--rule); }
+    .hprev { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border: 1px solid var(--rule); border-radius: 10px; background: #fff; color: #111; font-family: Inter, sans-serif; font-weight: 700; font-size: 22px; }
+    .hprev-text em { font-style: normal; color: #a00000; } .hprev-text i { font-style: normal; color: #d64000; }
+  </style>
+
+  <script is:inline>
+    const upload = async (kind, file) => {
+      if (!file) return;
+      const fd = new FormData(); fd.append('kind', kind); fd.append('file', file);
+      toast('Uploading…');
+      const r = await fetch('/api/admin/branding', { method: 'POST', body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return alert(j.error || 'Upload failed');
+      toast(kind === 'logo' ? 'Logo updated' : 'Favicon updated');
+      setTimeout(() => location.reload(), 500);
+    };
+    document.querySelectorAll('.bz').forEach((zone) => {
+      const input = zone.querySelector('input'), kind = zone.dataset.kind;
+      zone.onclick = () => input.click();
+      input.onchange = () => upload(kind, input.files[0]);
+      zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('over'); };
+      zone.ondragleave = () => zone.classList.remove('over');
+      zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('over'); upload(kind, e.dataTransfer.files[0]); };
+    });
+    document.querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => document.querySelector(`.bz[data-kind="${b.dataset.pick}"] input`).click());
+    document.querySelectorAll('[data-remove]').forEach((b) => b.onclick = async () => {
+      if (!confirm(`Remove the ${b.dataset.remove}?`)) return;
+      await api('/api/admin/branding', { action: 'remove', kind: b.dataset.remove });
+      location.reload();
+    });
+    const h = document.getElementById('logoHeight'), img = document.getElementById('hprevImg'), title = document.getElementById('hprevTitle');
+    h.oninput = () => { document.getElementById('hVal').textContent = h.value + 'px'; if (img) img.style.height = h.value + 'px'; };
+    document.getElementById('showTitle').onchange = (e) => { if (title) title.style.display = e.target.checked ? '' : 'none'; };
+    document.getElementById('saveOpts').onclick = async () => {
+      await api('/api/admin/branding', { action: 'options', logoHeight: Number(h.value), showTitleWithLogo: document.getElementById('showTitle').checked });
+      toast('Display options saved');
+    };
+  </script>
+</Admin>

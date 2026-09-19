@@ -18,7 +18,7 @@ export const GET: APIRoute = ({ url }) => {
     args.q = `%${q}%`;
   }
   const rows = db.prepare(
-    `SELECT id, title, slug, category, status, published_at FROM posts
+    `SELECT id, title, slug, category, status, published_at, featured_image FROM posts
      WHERE ${where.join(' AND ')} ORDER BY published_at DESC LIMIT 30 OFFSET @offset`).all(args);
   return new Response(JSON.stringify(rows), { headers: { 'content-type': 'application/json' } });
 };
